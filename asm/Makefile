@@ -1,4 +1,4 @@
-TARGET = in.bin out.bin select.bin
+TARGET = asm.bin
 Z_TOOLS = ../z_tools
 
 CC = gcc

@@ -20,7 +20,7 @@ static void read_binary(Emulator* emu, const char* filename)
     binary = fopen(filename, "rb");
 
     if (binary == NULL) {
-        printf("%s ファイルを開けません\n", filename);
+        printf("%s :cannot read the file\n", filename);
         exit(1);
     }
 
