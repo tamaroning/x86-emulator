@@ -1,3 +1,4 @@
+echo off
 git init
 git add .
 set COMMIT_MSG=
