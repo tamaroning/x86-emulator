@@ -13,6 +13,7 @@
 
 instruction_func_t* instructions[256];//index=opecode
 
+
 static void mov_r8_imm8(Emulator* emu)//
 {
     uint8_t reg = get_code8(emu, 0) - 0xB0;
@@ -318,6 +319,18 @@ static void swi(Emulator* emu)
     }
 }
 
+//lea
+//第2オペランド（読み込み元）の実効アドレスを計算し、第1オペランド（格納先）に格納
+static void lea(Emulator* emu){
+    printf("ebp:%08x\n",emu->registers[EBP]);
+
+    emu->eip += 1;
+    ModRM modrm;
+    parse_modrm(emu, &modrm);
+    //uint32_t rm32 = get_rm32(emu, &modrm);//実行アドレスの取得
+    set_r32(emu,&modrm,calc_memory_address(emu, &modrm));
+}
+
 //命令セット
 void init_instructions(void)
 {
@@ -360,6 +373,9 @@ void init_instructions(void)
     instructions[0x89] = mov_rm32_r32;
     instructions[0x8A] = mov_r8_rm8;
     instructions[0x8B] = mov_r32_rm32;
+
+    instructions[0x8D] = lea;
+
     //0xb0~0xb7
     for (i = 0; i < 8; i++) {
         instructions[0xB0 + i] = mov_r8_imm8;
@@ -382,3 +398,4 @@ void init_instructions(void)
     instructions[0xEE] = out_dx_al;
     instructions[0xFF] = code_ff;
 }
+
