@@ -1,5 +1,5 @@
 TARGET = asm.bin
-Z_TOOLS = ../z_tools
+Z_TOOLS = ../../z_tools
 
 CC = gcc
 LD = ld

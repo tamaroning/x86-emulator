@@ -15,6 +15,8 @@ typedef struct {
     uint8_t* memory;
 
     uint32_t eip;
+
+	uint32_t segBase[8], seg[8];  // CS, DS, SS, ES, FG, GS, TR, LDTR
 } Emulator;
 
 #endif

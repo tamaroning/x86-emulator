@@ -13,7 +13,7 @@
 char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
 
 //emuのメモリに512byteコピー
-static void read_binary(Emulator* emu, const char* filename)
+static void read_binary(Emulator* emu, const char* filename, int haribote)
 {
     FILE* binary;
 
@@ -24,8 +24,23 @@ static void read_binary(Emulator* emu, const char* filename)
         exit(1);
     }
 
-    /* Emulatorのメモリにバイナリファイルの内容を512バイトコピーする */
-    fread(emu->memory + 0x7c00, 1, 0x200, binary);
+	if (haribote == 0) {
+	    /* Emulatorのメモリにバイナリファイルの内容を512バイトコピーする */
+    	fread(emu->memory + 0x7c00, 1, 0x200, binary);
+	} else {
+    	fread(emu->memory + 0x00100000, 1, 1440 * 1024, binary);
+		memcpy(emu->memory + 0x00280000, emu->memory + 0x00104390, 512 * 1024);
+		uint32_t* bootpack = (uint32_t*) (emu->memory + 0x00280000);
+		memcpy(emu->memory + bootpack[3], emu->memory + (bootpack[5] + 0x00280000), bootpack[4]);
+		emu->registers[ESP] = bootpack[3];
+		emu->eip = 0x0028001b;
+		uint16_t* bootinfo = (uint16_t*) emu->memory + 0x0ff0;
+		bootinfo[1] = 8;
+		bootinfo[2] = 640;
+		bootinfo[3] = 480;
+		bootinfo[4] = 0x0000;
+		bootinfo[4] = 0xe000;
+	}
     fclose(binary);
 }
 
@@ -56,6 +71,9 @@ static Emulator* create_emu(size_t size, uint32_t eip, uint32_t esp)
     /* スタックポインタの初期値 */
     emu->registers[ESP] = esp;
 
+    memset(emu->segBase, 0, sizeof(emu->segBase));
+    memset(emu->seg, 0, sizeof(emu->seg));
+
     return emu;
 }
 
@@ -84,14 +102,18 @@ int main(int argc, char* argv[])
 {
     Emulator* emu;
     int i;
-    int quiet = 0;
+    int quiet = 0, haribote = 0, memsiz = MEMORY_SIZE;
 
-    //-qオプション
+    //-q, -hオプション
     i = 1;
     while (i < argc) {
         if (strcmp(argv[i], "-q") == 0) {
             quiet = 1;
             argc = opt_remove_at(argc, argv, i);
+		} else if (strcmp(argv[i], "-h") == 0) {
+            haribote = 1;
+            argc = opt_remove_at(argc, argv, i);
+			memsiz = 32 * 1024 * 1024;
         } else {
             i++;
         }
@@ -106,11 +128,11 @@ int main(int argc, char* argv[])
     init_instructions();
 
     ///eip,esp=0x7c00 memory1MBのemu作成
-    emu = create_emu(MEMORY_SIZE, 0x7c00, 0x7c00);
+   	emu = create_emu(memsiz, 0x7c00, 0x7c00);
 
-    read_binary(emu, argv[1]);
+    read_binary(emu, argv[1], haribote);
 
-    while (emu->eip < MEMORY_SIZE) {
+    while (emu->eip < memsiz) {
         uint8_t code = get_code8(emu, 0);
         //バイナリ出力
         if (!quiet) {
@@ -120,6 +142,7 @@ int main(int argc, char* argv[])
         if (instructions[code] == NULL) {
             //opecode未実装
             printf("\n\nNot Implemented: %x\n", code);
+			printf("[%02x %02x %02x %02x]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3));
             break;
         }
 
