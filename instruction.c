@@ -420,7 +420,7 @@ void init_instructions(void)
     for (i = 0; i < 8; i++) {
         instructions[0xB8 + i] = mov_r32_imm32;
     }
-    instructions[0xC0] = sar_rm8_imm8;
+    //instructions[0xC0] = sar_rm8_imm8;
     instructions[0xC3] = ret;
     instructions[0xC7] = mov_rm32_imm32;
     instructions[0xC9] = leave;

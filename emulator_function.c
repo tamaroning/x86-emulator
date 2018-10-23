@@ -2,12 +2,12 @@
 
 uint32_t get_code8(Emulator* emu, int index)
 {
-    return emu->memory[emu->eip + index + emu->segBase[0]];
+    return emu->memory[emu->eip + index + emu->segBase[1]];
 }
 
 int32_t get_sign_code8(Emulator* emu, int index)
 {
-    return (int8_t)emu->memory[emu->eip + index + emu->segBase[0]];
+    return (int8_t)emu->memory[emu->eip + index + emu->segBase[1]];
 }
 
 uint32_t get_code32(Emulator* emu, int index)
