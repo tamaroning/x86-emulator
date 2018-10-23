@@ -17,7 +17,7 @@ void parse_modrm(Emulator* emu, ModRM* modrm)//eipがmodR/Mの先頭
 
     code = get_code8(emu, 0);//全体取得
     modrm->mod = ((code & 0xC0) >> 6);
-    modrm->opecode = ((code & 0x38) >> 3);
+    modrm->nnn = ((code & 0x38) >> 3);
     modrm->rm = code & 0x07;
 
     emu->eip += 1;

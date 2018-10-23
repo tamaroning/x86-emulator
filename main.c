@@ -83,7 +83,6 @@ static void destroy_emu(Emulator* emu)
     free(emu);
 }
 
-//whats this
 int opt_remove_at(int argc, char* argv[], int index)
 {
     if (index < 0 || argc <= index) {
@@ -137,6 +136,7 @@ int main(int argc, char* argv[])
         //バイナリ出力
         if (!quiet) {
             printf("EIP = %X, Code = %02X\n", emu->eip, code);
+            //printf("esp=%x\n",emu->registers[ESP]);
         }
 
         if (instructions[code] == NULL) {

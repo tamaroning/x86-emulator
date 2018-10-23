@@ -137,13 +137,24 @@ static void sub_rm32_imm8(Emulator* emu, ModRM* modrm)
     update_eflags_sub(emu, rm32, imm8, result);
 }
 
+static void sub_rm32_imm32(Emulator* emu, ModRM* modrm)
+{
+    uint32_t rm32 = get_rm32(emu, modrm);
+    uint32_t imm32 = (uint32_t)get_sign_code32(emu, 0);
+    emu->eip += 4;
+    uint64_t result = (uint64_t)rm32 - (uint64_t)imm32;
+    set_rm32(emu, modrm, result);
+    update_eflags_sub(emu, rm32, imm32, result);
+}
+
+
 static void code_83(Emulator* emu)
 {
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
 
-    switch (modrm.opecode) {
+    switch (modrm.nnn) {
     case 0:
         add_rm32_imm8(emu, &modrm);
         break;
@@ -154,7 +165,7 @@ static void code_83(Emulator* emu)
         cmp_rm32_imm8(emu, &modrm);
         break;
     default:
-        printf("not implemented: 83 /%d\n", modrm.opecode);
+        printf("not implemented: 83 /%d\n", modrm.nnn);
         exit(1);
     }
 }
@@ -199,12 +210,12 @@ static void code_ff(Emulator* emu)
     ModRM modrm;
     parse_modrm(emu, &modrm);
 
-    switch (modrm.opecode) {
+    switch (modrm.nnn) {
     case 0:
         inc_rm32(emu, &modrm);
         break;
     default:
-        printf("not implemented: FF /%d\n", modrm.opecode);
+        printf("not implemented: FF /%d\n", modrm.nnn);
         exit(1);
     }
 }
@@ -322,16 +333,30 @@ static void swi(Emulator* emu)
 //lea
 //第2オペランド（読み込み元）の実効アドレスを計算し、第1オペランド（格納先）に格納
 static void lea(Emulator* emu){
-    printf("ebp:%08x\n",emu->registers[EBP]);
-
+    //printf("ebp:%08x\n",emu->registers[EBP]);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
-    //uint32_t rm32 = get_rm32(emu, &modrm);//実行アドレスの取得
-    set_r32(emu,&modrm,calc_memory_address(emu, &modrm));
+    uint32_t addr=calc_memory_address(emu, &modrm);
+    set_r32(emu,&modrm,addr);
 }
 
-//命令セット
+static void sub_rm32_imm(Emulator* emu)
+{
+    emu->eip += 1;
+    ModRM modrm;
+    parse_modrm(emu, &modrm);
+    switch(modrm.nnn){
+        case 5:
+            sub_rm32_imm32(emu,&modrm);
+            break;
+        default:
+            puts("error code:81");
+            exit(0);
+            break;
+    }
+}
+
 void init_instructions(void)
 {
     int i;
@@ -367,6 +392,8 @@ void init_instructions(void)
     instructions[0x79] = jns;//not sign
     instructions[0x7C] = jl;//less
     instructions[0x7E] = jle;//less or equal
+
+    instructions[0x81] = sub_rm32_imm;
 
     instructions[0x83] = code_83;
     instructions[0x88] = mov_rm8_r8;

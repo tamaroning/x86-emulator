@@ -9,7 +9,7 @@ typedef struct {
     uint8_t mod;
 
     union {
-        uint8_t opecode;//どっちも
+        uint8_t nnn;//どっちも
         uint8_t reg_index;//同じ
     };
 
