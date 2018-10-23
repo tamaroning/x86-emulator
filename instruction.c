@@ -357,6 +357,13 @@ static void sub_rm32_imm(Emulator* emu)
     }
 }
 
+//（セグメント：オフセット）のバイトをALに転送します
+static void mov_al_moffs8(Emulator* emu){
+    uint32_t offs=get_code32(emu,1);
+    set_register32(emu,AL,offs);
+    emu->eip+=5;
+}
+
 void init_instructions(void)
 {
     int i;
@@ -403,6 +410,8 @@ void init_instructions(void)
 
     instructions[0x8D] = lea;
 
+    instructions[0xA0] = mov_al_moffs8;
+
     //0xb0~0xb7
     for (i = 0; i < 8; i++) {
         instructions[0xB0 + i] = mov_r8_imm8;
@@ -411,7 +420,7 @@ void init_instructions(void)
     for (i = 0; i < 8; i++) {
         instructions[0xB8 + i] = mov_r32_imm32;
     }
-
+    instructions[0xC0] = sar_rm8_imm8;
     instructions[0xC3] = ret;
     instructions[0xC7] = mov_rm32_imm32;
     instructions[0xC9] = leave;

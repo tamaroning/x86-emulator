@@ -16,7 +16,6 @@ char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"
 static void read_binary(Emulator* emu, const char* filename, int haribote)
 {
     FILE* binary;
-
     binary = fopen(filename, "rb");
 
     if (binary == NULL) {
@@ -25,7 +24,7 @@ static void read_binary(Emulator* emu, const char* filename, int haribote)
     }
 
 	if (haribote == 0) {
-	    /* Emulatorのメモリにバイナリファイルの内容を512バイトコピーする */
+	    //Emulatorのメモリにバイナリファイルを512バイトコピー
     	fread(emu->memory + 0x7c00, 1, 0x200, binary);
 	} else {
     	fread(emu->memory + 0x00100000, 1, 1440 * 1024, binary);
@@ -48,11 +47,9 @@ static void read_binary(Emulator* emu, const char* filename, int haribote)
 static void dump_registers(Emulator* emu)
 {
     int i;
-
     for (i = 0; i < REGISTERS_COUNT; i++) {
         printf("%s = %08x\n", registers_name[i], get_register32(emu, i));
     }
-
     printf("EIP = %08x\n", emu->eip);
 }
 
@@ -60,7 +57,6 @@ static void dump_registers(Emulator* emu)
 static Emulator* create_emu(size_t size, uint32_t eip, uint32_t esp)
 {
     Emulator* emu = malloc(sizeof(Emulator));
-
     emu->memory = malloc(size);//確保
 
     /* 汎用レジスタを全て0にする */
