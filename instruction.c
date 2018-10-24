@@ -364,6 +364,32 @@ static void mov_al_moffs8(Emulator* emu){
     emu->eip+=5;
 }
 
+static void sar_rm8_imm8(Emulator* emu){
+    uint32_t rm8,imm8;
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    imm8=get_code8(emu,0);
+    emu->eip++;
+
+    switch(modrm.nnn){
+        case 4://rm8をimm8だけ左シフト
+            rm8=(uint32_t)get_rm8(emu,&modrm);
+            rm8=rm8<<imm8;
+            set_r8(emu,&modrm,(uint8_t)rm8);
+            break;
+        case 5:
+        case 7://rm8をimm8だけ右シフト
+            rm8=(uint32_t)get_rm8(emu,&modrm);
+            rm8=rm8>>imm8;
+            set_r8(emu,&modrm,(uint8_t)rm8);
+            break;
+        default:
+        puts("error code:C0");
+            break;
+    }
+}
+
 void init_instructions(void)
 {
     int i;
@@ -420,7 +446,7 @@ void init_instructions(void)
     for (i = 0; i < 8; i++) {
         instructions[0xB8 + i] = mov_r32_imm32;
     }
-    //instructions[0xC0] = sar_rm8_imm8;
+    instructions[0xC0] = sar_rm8_imm8;
     instructions[0xC3] = ret;
     instructions[0xC7] = mov_rm32_imm32;
     instructions[0xC9] = leave;

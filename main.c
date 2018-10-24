@@ -7,7 +7,7 @@
 #include "emulator_function.h"//
 #include "instruction.h"
 
-/* メモリは1MB */
+//1MB
 #define MEMORY_SIZE (1024 * 1024)
 
 char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
