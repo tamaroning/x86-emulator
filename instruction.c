@@ -1,3 +1,6 @@
+//16bit:iw
+//32bit:id<-
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -147,6 +150,19 @@ static void sub_rm32_imm32(Emulator* emu, ModRM* modrm)
     update_eflags_sub(emu, rm32, imm32, result);
 }
 
+//new
+static void and_rm8_imm8(Emulator* emu,ModRM* modrm){
+    uint8_t imm8=get_code8(emu,0);
+    uint8_t rm8=get_rm8(emu,modrm);
+    rm8 &= imm8;
+    set_rm8(emu,modrm,rm8);
+    
+    set_overflow(emu,0);
+    set_carry(emu,0);
+    set_zero(emu,rm8==0);
+    emu->eip++;
+    //sf
+}
 
 static void code_83(Emulator* emu)
 {
@@ -157,6 +173,9 @@ static void code_83(Emulator* emu)
     switch (modrm.nnn) {
     case 0:
         add_rm32_imm8(emu, &modrm);
+        break;
+    case 4:
+        and_rm8_imm8(emu,&modrm);
         break;
     case 5:
         sub_rm32_imm8(emu, &modrm);
@@ -363,7 +382,7 @@ static void mov_al_moffs8(Emulator* emu){
     set_register32(emu,AL,offs);
     emu->eip+=5;
 }
-
+//new
 static void sar_rm8_imm8(Emulator* emu){
     uint32_t rm8,imm8;
     emu->eip++;
