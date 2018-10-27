@@ -376,13 +376,19 @@ static void sar_rm8_imm8(Emulator* emu){
         case 4://rm8をimm8だけ左シフト
             rm8=(uint32_t)get_rm8(emu,&modrm);
             rm8=rm8<<imm8;
+
             set_r8(emu,&modrm,(uint8_t)rm8);
+            set_zero(emu,rm8==0);
+            set_overflow(emu,rm8>=256);
+            set_carry(emu,rm8>=256);
             break;
         case 5:
         case 7://rm8をimm8だけ右シフト
             rm8=(uint32_t)get_rm8(emu,&modrm);
             rm8=rm8>>imm8;
             set_r8(emu,&modrm,(uint8_t)rm8);
+
+            set_zero(emu,rm8==0);
             break;
         default:
         puts("error code:C0");
