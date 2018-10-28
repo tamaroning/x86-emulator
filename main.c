@@ -42,8 +42,7 @@ static void read_binary(Emulator* emu, const char* filename, int haribote)
 		bootinfo[1] = 8;
 		bootinfo[2] = 640;
 		bootinfo[3] = 480;
-		bootinfo[4] = 0x0000;
-		bootinfo[4] = 0xe000;
+		bootinfo[4] = 0x01f0;
 	
 	}
     fclose(binary);
