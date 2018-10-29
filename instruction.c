@@ -301,6 +301,15 @@ static void cmp_r32_rm32(Emulator* emu)
     update_eflags_sub(emu, r32, rm32, result);
 }
 
+//new
+static void cmp_rm32_imm32(Emulator* emu,ModRM* modrm){
+    uint32_t imm32=get_code32(emu,0);
+    uint32_t rm32=get_rm32(emu,modrm);
+    uint64_t result=(uint64_t)rm32-(uint64_t)imm32;
+    update_eflags_sub(emu,rm32,imm32,result);
+    emu->eip+=4;
+}
+
 #define DEFINE_JX(flag, is_flag) \
 static void j ## flag(Emulator* emu) \
 { \
@@ -349,6 +358,7 @@ static void swi(Emulator* emu)
     }
 }
 
+//new
 //lea
 //第2オペランド（読み込み元）の実効アドレスを計算し、第1オペランド（格納先）に格納
 static void lea(Emulator* emu){
@@ -360,7 +370,9 @@ static void lea(Emulator* emu){
     set_r32(emu,&modrm,addr);
 }
 
-static void sub_rm32_imm(Emulator* emu)
+
+//new
+static void code_81(Emulator* emu)
 {
     emu->eip += 1;
     ModRM modrm;
@@ -368,6 +380,9 @@ static void sub_rm32_imm(Emulator* emu)
     switch(modrm.nnn){
         case 5:
             sub_rm32_imm32(emu,&modrm);
+            break;
+        case 7:
+            cmp_rm32_imm32(emu,&modrm);
             break;
         default:
             puts("error code:81");
@@ -451,7 +466,7 @@ void init_instructions(void)
     instructions[0x7C] = jl;//less
     instructions[0x7E] = jle;//less or equal
 
-    instructions[0x81] = sub_rm32_imm;
+    instructions[0x81] = code_81;
 
     instructions[0x83] = code_83;
     instructions[0x88] = mov_rm8_r8;
