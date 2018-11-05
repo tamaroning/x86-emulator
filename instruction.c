@@ -415,10 +415,10 @@ static void code_C0(Emulator* emu){
             rm8=(uint32_t)get_rm8(emu,&modrm);
             rm8=rm8<<imm8;
 
-            set_r8(emu,&modrm,(uint8_t)rm8);
+            set_r8(emu,&modrm,(uint8_t)rm8%256);
             set_zero(emu,rm8==0);
             set_overflow(emu,rm8>=256);
-            set_carry(emu,rm8>=256);
+            set_carry(emu,rm8&128);
             break;
         case 5:
         case 7://rm8をimm8だけ右シフト
