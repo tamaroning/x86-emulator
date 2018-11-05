@@ -343,6 +343,13 @@ static void jle(Emulator* emu)//jump less or equal
     emu->eip += (diff + 2);
 }
 
+//new
+static void jbe(Emulator* emu)//jump if less
+{
+    //CF==1 or ZF==1
+    int diff = (is_carry(emu)||is_zero(emu)) ? get_sign_code8(emu, 1) : 0;
+    emu->eip += (diff + 2);
+}
 
 
 //int
@@ -437,6 +444,10 @@ static void code_C0(Emulator* emu){
     }
 }
 
+static void code_66(Emulator* emu){
+    emu->eip++;
+}
+
 void init_instructions(void)
 {
     int i;
@@ -458,7 +469,7 @@ void init_instructions(void)
     for (i = 0; i < 8; i++) {
         instructions[0x58 + i] = pop_r32;
     }
-
+    instructions[0x66] = code_66;
     instructions[0x68] = push_imm32;
     instructions[0x6A] = push_imm8;
 
@@ -468,7 +479,7 @@ void init_instructions(void)
     instructions[0x73] = jnc;//not carry
     instructions[0x74] = jz;//zero
     instructions[0x75] = jnz;//not zero
-    //instructions[0x76] = jbe;
+    instructions[0x76] = jbe;
     instructions[0x78] = js;//sign
     instructions[0x79] = jns;//not sign
     instructions[0x7C] = jl;//less
