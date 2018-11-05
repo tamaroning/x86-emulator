@@ -327,6 +327,7 @@ DEFINE_JX(z, is_zero)
 DEFINE_JX(s, is_sign)
 DEFINE_JX(o, is_overflow)
 
+
 #undef DEFINE_JX
 
 static void jl(Emulator* emu)//jump if less
@@ -341,6 +342,8 @@ static void jle(Emulator* emu)//jump less or equal
     int diff = (is_zero(emu) || (is_sign(emu) != is_overflow(emu))) ? get_sign_code8(emu, 1) : 0;
     emu->eip += (diff + 2);
 }
+
+
 
 //int
 static void swi(Emulator* emu)
@@ -398,7 +401,7 @@ static void mov_al_moffs8(Emulator* emu){
     emu->eip+=5;
 }
 //new
-static void sar_rm8_imm8(Emulator* emu){
+static void code_C0(Emulator* emu){
     uint32_t rm8,imm8;
     emu->eip++;
     ModRM modrm;
@@ -408,6 +411,7 @@ static void sar_rm8_imm8(Emulator* emu){
 
     switch(modrm.nnn){
         case 4://rm8をimm8だけ左シフト
+            //sal_rm8_imm8
             rm8=(uint32_t)get_rm8(emu,&modrm);
             rm8=rm8<<imm8;
 
@@ -418,10 +422,13 @@ static void sar_rm8_imm8(Emulator* emu){
             break;
         case 5:
         case 7://rm8をimm8だけ右シフト
+            //sar_rm8_imm8
             rm8=(uint32_t)get_rm8(emu,&modrm);
-            rm8=rm8>>imm8;
+            int64_t sgn=(int64_t)rm8;
+            sgn=sgn>>imm8;
+            rm8=(uint32_t)sgn;
             set_r8(emu,&modrm,(uint8_t)rm8);
-
+            set_carry(emu,(sgn>>(imm8-1))%2);
             set_zero(emu,rm8==0);
             break;
         default:
@@ -461,6 +468,7 @@ void init_instructions(void)
     instructions[0x73] = jnc;//not carry
     instructions[0x74] = jz;//zero
     instructions[0x75] = jnz;//not zero
+    //instructions[0x76] = jbe;
     instructions[0x78] = js;//sign
     instructions[0x79] = jns;//not sign
     instructions[0x7C] = jl;//less
@@ -486,7 +494,7 @@ void init_instructions(void)
     for (i = 0; i < 8; i++) {
         instructions[0xB8 + i] = mov_r32_imm32;
     }
-    instructions[0xC0] = sar_rm8_imm8;
+    instructions[0xC0] = code_C0;
     instructions[0xC3] = ret;
     instructions[0xC7] = mov_rm32_imm32;
     instructions[0xC9] = leave;
