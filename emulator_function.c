@@ -36,6 +36,11 @@ uint8_t get_register8(Emulator* emu, int index)
         return (emu->registers[index - 4] >> 8) & 0xff;
     }
 }
+//new
+uint16_t get_register16(Emulator* emu,int index)
+{
+    return emu->registers[index] & 0xffff;
+}
 
 uint32_t get_register32(Emulator* emu, int index)
 {
@@ -51,6 +56,10 @@ void set_register8(Emulator* emu, int index, uint8_t value)
         uint32_t r = emu->registers[index - 4] & 0xffff00ff;
         emu->registers[index - 4] = r | ((int32_t)value << 8);
     }
+}
+
+void set_register16(Emulator* emu, int index, uint16_t value){
+    emu->registers[index] = (emu->registers[index] & 0xffff0000) + value;
 }
 
 void set_register32(Emulator* emu, int index, uint32_t value)

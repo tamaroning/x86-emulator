@@ -136,6 +136,7 @@ int main(int argc, char* argv[])
         uint8_t code = get_code8(emu, 0);
         //バイナリ出力
         if (!quiet) {
+            if(opsiz==2)puts("--16bit mode--");
             printf("EIP = %X, Code = %02X\n", emu->eip, code);
             //printf("esp=%x\n",emu->registers[ESP]);
         }
@@ -147,8 +148,10 @@ int main(int argc, char* argv[])
             break;
         }
 
+        if(opsiz!=0)opsiz--;
         //命令実行
         instructions[code](emu);
+        
 
         /* EIPが0になったらプログラム終了 */
         if (emu->eip == 0) {

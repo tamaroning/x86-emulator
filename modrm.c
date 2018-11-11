@@ -7,6 +7,7 @@
 #include "modrm.h"
 #include "emulator_function.h"
 
+
 void parse_modrm(Emulator* emu, ModRM* modrm)//eipがmodR/Mの先頭
 {
     uint8_t code;
@@ -45,21 +46,33 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
         } else if (modrm->rm == 5) {
             return modrm->disp32;
         } else {
-            return get_register32(emu, modrm->rm);
+            if(opsiz==0){
+                return get_register32(emu, modrm->rm);
+            }else{
+                return get_register16(emu, modrm->rm);
+            }
         }
     } else if (modrm->mod == 1) {
         if (modrm->rm == 4) {
             printf("not implemented ModRM mod = 1, rm = 4\n");
             exit(0);
         } else {
-            return get_register32(emu, modrm->rm) + modrm->disp8;
+            if(opsiz==0){
+                return get_register32(emu, modrm->rm) + modrm->disp8;
+            }else{
+                return get_register16(emu, modrm->rm) + modrm->disp8;
+            }
         }
     } else if (modrm->mod == 2) {
         if (modrm->rm == 4) {
             printf("not implemented ModRM mod = 2, rm = 4\n");
             exit(0);
         } else {
-            return get_register32(emu, modrm->rm) + modrm->disp32;
+            if(opsiz==0){
+                return get_register32(emu, modrm->rm) + modrm->disp32;
+            }else{
+                return get_register16(emu, modrm->rm) + modrm->disp32;
+            }
         }
     } else {
         printf("not implemented ModRM mod = 3\n");
@@ -100,7 +113,11 @@ uint8_t get_rm8(Emulator* emu, ModRM* modrm)
 uint32_t get_rm32(Emulator* emu, ModRM* modrm)
 {
     if (modrm->mod == 3) {
-        return get_register32(emu, modrm->rm);
+        if(opsiz==0){
+            return get_register32(emu, modrm->rm);
+        }else{
+            return get_register16(emu, modrm->rm);
+        }
     } else {
         uint32_t address = calc_memory_address(emu, modrm);
         return get_memory32(emu, address);
@@ -114,7 +131,11 @@ void set_r8(Emulator* emu, ModRM* modrm, uint8_t value)
 
 void set_r32(Emulator* emu, ModRM* modrm, uint32_t value)
 {
-    set_register32(emu, modrm->reg_index, value);
+    if(opsiz==0){
+        set_register32(emu, modrm->reg_index, value);
+    }else{
+        set_register16(emu, modrm->reg_index, value);
+    }
 }
 
 uint8_t get_r8(Emulator* emu, ModRM* modrm)
@@ -124,5 +145,9 @@ uint8_t get_r8(Emulator* emu, ModRM* modrm)
 
 uint32_t get_r32(Emulator* emu, ModRM* modrm)
 {
-    return get_register32(emu, modrm->reg_index);
+    if(opsiz==0){
+        return get_register32(emu, modrm->reg_index);
+    }else{
+        return get_register16(emu, modrm->reg_index);
+    }
 }

@@ -15,7 +15,6 @@
 #include "modrm.h"
 
 instruction_func_t* instructions[256];//index=opecode
-int is16=0;
 
 static void mov_r8_imm8(Emulator* emu)//
 {
@@ -409,7 +408,7 @@ static void mov_al_moffs8(Emulator* emu){
 }
 //new
 static void code_C0(Emulator* emu){
-    uint32_t rm8,imm8;
+    uint32_t rm8,imm8,res8;
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
@@ -420,12 +419,14 @@ static void code_C0(Emulator* emu){
         case 4://rm8をimm8だけ左シフト
             //sal_rm8_imm8
             rm8=(uint32_t)get_rm8(emu,&modrm);
-            rm8=rm8<<imm8;
+            res8=rm8<<imm8;
 
-            set_r8(emu,&modrm,(uint8_t)rm8%256);
+            set_rm8(emu,&modrm,(uint8_t)res8%256);
             set_zero(emu,rm8==0);
-            set_overflow(emu,rm8>=256);
-            set_carry(emu,rm8&128);
+            set_carry(emu, rm8 & (1<<(8-imm8)) );
+            if(imm8==1){
+                set_overflow(emu, (rm8 & 0xc0)==0 || (rm8 & 0xc0)==3 );
+            }
             break;
         case 5:
         case 7://rm8をimm8だけ右シフト
@@ -433,10 +434,11 @@ static void code_C0(Emulator* emu){
             rm8=(uint32_t)get_rm8(emu,&modrm);
             int64_t sgn=(int64_t)rm8;
             sgn=sgn>>imm8;
-            rm8=(uint32_t)sgn;
-            set_r8(emu,&modrm,(uint8_t)rm8);
-            set_carry(emu,(sgn>>(imm8-1))%2);
-            set_zero(emu,rm8==0);
+            res8=(uint32_t)sgn;
+            set_rm8(emu,&modrm,(uint8_t)res8);
+            set_carry(emu, rm8 & (1<<(imm8-1)) );
+            set_zero(emu,res8==0);
+            if(imm8==1)set_overflow(emu,0);
             break;
         default:
             puts("error code:C0");
@@ -444,30 +446,35 @@ static void code_C0(Emulator* emu){
     }
 }
 
-static void code_C0(emulator* emu){
-    uint32_t rm8,imm8;
+static void code_C1(Emulator* emu){
+    uint64_t rm8,imm8,res8;
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
     switch(modrm.nnn){
         //case 4://shl rm32 imm8
             //break;
+
+            //帰宅したらシフト系は関数にまとめますーーーーーーーーーーーーーー
+        
+        //r/m32を2でimm8回符号なし除算します
         case 5://shr rm32 imm8
-            imm8=get_code8(emu,0);
+            /*imm8=get_code8(emu,0);
+            res8=rm8 >> imm8
             emu->eip++;
-            break;
+            set_overflow(rm8 & 128)
+            break;*/
         //case 7://sar rm32 imm8
             //break;
         default:
-            puts("error code:C0");
+            puts("error code:C1");
             break;
     }
 
 }
 
 static void code_66(Emulator* emu){
-    puts("0x66 (16bit mode)")
-    is16=1;
+    opsiz=2;
     emu->eip++;
 }
 
