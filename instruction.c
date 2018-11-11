@@ -15,7 +15,7 @@
 #include "modrm.h"
 
 instruction_func_t* instructions[256];//index=opecode
-
+int is16=0;
 
 static void mov_r8_imm8(Emulator* emu)//
 {
@@ -439,12 +439,35 @@ static void code_C0(Emulator* emu){
             set_zero(emu,rm8==0);
             break;
         default:
-        puts("error code:C0");
+            puts("error code:C0");
             break;
     }
 }
 
+static void code_C0(emulator* emu){
+    uint32_t rm8,imm8;
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    switch(modrm.nnn){
+        //case 4://shl rm32 imm8
+            //break;
+        case 5://shr rm32 imm8
+            imm8=get_code8(emu,0);
+            emu->eip++;
+            break;
+        //case 7://sar rm32 imm8
+            //break;
+        default:
+            puts("error code:C0");
+            break;
+    }
+
+}
+
 static void code_66(Emulator* emu){
+    puts("0x66 (16bit mode)")
+    is16=1;
     emu->eip++;
 }
 
@@ -506,6 +529,7 @@ void init_instructions(void)
         instructions[0xB8 + i] = mov_r32_imm32;
     }
     instructions[0xC0] = code_C0;
+    instructions[0xC1] = code_C1;
     instructions[0xC3] = ret;
     instructions[0xC7] = mov_rm32_imm32;
     instructions[0xC9] = leave;
