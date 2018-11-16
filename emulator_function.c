@@ -152,6 +152,17 @@ void set_overflow(Emulator* emu, int is_overflow)
     }
 }
 
+void set_interrupt(Emulator* emu, int is_interrupt)
+{
+    if (is_interrupt) {
+        emu->eflags |= INTERRUPT_FLAG;
+    } else {
+        emu->eflags &= ~INTERRUPT_FLAG;
+    }
+}
+
+
+
 int is_carry(Emulator* emu)
 {
     return (emu->eflags & CARRY_FLAG) != 0;
@@ -170,6 +181,11 @@ int is_sign(Emulator* emu)
 int is_overflow(Emulator* emu)
 {
     return (emu->eflags & OVERFLOW_FLAG) != 0;
+}
+
+int is_interrupt(Emulator* emu)
+{
+    return (emu->eflags & INTERRUPT_FLAG) != 0;
 }
 
 void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result)

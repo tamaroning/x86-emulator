@@ -6,6 +6,13 @@
 #include "emulator.h"
 
 typedef struct {
+
+    uint8_t base_addr, reg_index, scale;
+    //addr:3bit reg_index:3bit scale:2bit
+
+}SIB;
+
+typedef struct {
     uint8_t mod;
 
     union {
@@ -16,13 +23,20 @@ typedef struct {
     uint8_t rm;
 
     /* SIB が必要な mod/rm の組み合わせの時に使う */
-    uint8_t sib;
+    uint8_t sib_byte;
+    SIB sib;
 
     union {
         int8_t disp8; //signed
         uint32_t disp32;
     };
 } ModRM;
+
+
+//呼び出し時eipがsibをさすように
+//終了時eip++
+void parse_sib(Emulator* emu, ModRM* modrm);
+
 
 /* ModR/M, SIB, ディスプレースメントを解析する
  * emu から ModR/M, SIB, ディスプレースメントを読み取って modrm にセットする。

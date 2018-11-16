@@ -143,8 +143,8 @@ int main(int argc, char* argv[])
 
         if (instructions[code] == NULL) {
             //opecode未実装
-            printf("\n\nNot Implemented: %x\n", code);
-			printf("[%02x %02x %02x %02x]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3));
+            printf("\n\nNot Implemented: %X\n", code);
+			printf("[%02X %02X %02X %02X]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3));
             break;
         }
 
@@ -159,6 +159,7 @@ int main(int argc, char* argv[])
             break;
         }
     }
+    //puts("end");
 
     dump_registers(emu);
     destroy_emu(emu);

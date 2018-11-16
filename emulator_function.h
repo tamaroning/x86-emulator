@@ -10,6 +10,8 @@
 #define SIGN_FLAG (1 << 7)
 #define OVERFLOW_FLAG (1 << 11)
 
+#define INTERRUPT_FLAG (1 << 9)
+
 /* プログラムカウンタから相対位置にある符号無し8bit値を取得 */
 uint32_t get_code8(Emulator* emu, int index);
 
