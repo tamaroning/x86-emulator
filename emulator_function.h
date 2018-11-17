@@ -62,6 +62,7 @@ void set_carry(Emulator* emu, int is_carry);
 void set_zero(Emulator* emu, int is_zero);
 void set_sign(Emulator* emu, int is_sign);
 void set_overflow(Emulator* emu, int is_overflow);
+void set_interrupt(Emulator* emu, int is_interrupt);
 
 /* EFLAGの各フラグ取得用関数 */
 int32_t is_carry(Emulator* emu);

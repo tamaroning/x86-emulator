@@ -145,6 +145,34 @@ static void add_rm32_imm8(Emulator* emu, ModRM* modrm)
     set_rm32(emu, modrm, rm32 + imm8);
 }
 
+
+static void xor_rm32_r32(Emulator* emu){
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    uint32_t rm32,r32,res;
+    rm32=get_rm32(emu,&modrm);
+    r32=get_r32(emu,&modrm);
+
+    res = rm32^r32;
+    set_rm32(emu,&modrm,res);
+
+    set_zero(emu,res==0);
+    set_overflow(emu,0);
+    set_carry(emu,0);
+
+}
+
+static void cmp_rm8_imm8(Emulator* emu,ModRM* modrm){
+    uint8_t rm8=get_rm8(emu,modrm);
+    uint8_t imm8=get_code8(emu,0);
+
+    uint16_t result = (uint16_t)rm8 - (uint16_t)imm8;
+    update_eflags_sub(emu, (uint32_t)rm8, (uint32_t)imm8, (uint64_t)result);
+
+    emu->eip++;
+}
+
 static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm)
 {
     uint32_t rm32 = get_rm32(emu, modrm);
@@ -366,6 +394,17 @@ static void cmp_r32_rm32(Emulator* emu)
     update_eflags_sub(emu, r32, rm32, result);
 }
 
+static void cmp_rm32_r32(Emulator* emu)
+{
+    emu->eip += 1;
+    ModRM modrm;
+    parse_modrm(emu, &modrm);
+    uint32_t r32 = get_r32(emu, &modrm);
+    uint32_t rm32 = get_rm32(emu, &modrm);
+    uint64_t result = (uint64_t)rm32 - (uint64_t)r32;
+    update_eflags_sub(emu, rm32, r32, result);
+}
+
 //new
 static void cmp_rm32_imm32(Emulator* emu,ModRM* modrm){
     uint32_t imm32=get_code32(emu,0);
@@ -444,6 +483,19 @@ static void lea(Emulator* emu){
     set_r32(emu,&modrm,addr);
 }
 
+static void code_80(Emulator* emu){
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    switch(modrm.nnn){
+        case 7:
+            cmp_rm8_imm8(emu,&modrm);
+            break;
+        default:
+            puts("error code_80");
+            break;
+    }
+}
 
 //new
 static void code_81(Emulator* emu)
@@ -465,15 +517,17 @@ static void code_81(Emulator* emu)
     }
 }
 
+/*
 static void cmp_rm16_r16(Emulator* emu){
     puts("cmpえらー");
     exit(0);
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
-    int32_t rm16 = (int32_t)get_rm16(emu,&modrm);
+    //int32_t rm16 = (int32_t)get_rm16(emu,&modrm);
     //get_r
 }
+*/
 
 
 static void sar_rm8_imm8(Emulator* emu,ModRM* modrm){
@@ -514,6 +568,11 @@ static void mov_al_moffs8(Emulator* emu){
     set_register32(emu,AL,offs);
     emu->eip+=5;
 }
+
+static void mov_moffs32_eax(Emulator* emu){
+
+}
+
 //new
 static void code_C0(Emulator* emu){
     emu->eip++;
@@ -600,7 +659,6 @@ static void code_66(Emulator* emu){
     emu->eip++;
 }
 static void sti(Emulator* emu){
-    //ちえんしてどうたら～？
     set_interrupt(emu,1);
     emu->eip++;
     
@@ -612,11 +670,14 @@ void init_instructions(void){
     instructions[0x01] = add_rm32_r32;
     instructions[0x09] = or_rm32_r32;
     instructions[0x0F] = code_0F;
+
+    instructions[0x31] = xor_rm32_r32;
+
+    instructions[0x39] = cmp_rm32_r32;
     instructions[0x3B] = cmp_r32_rm32;
     instructions[0x3C] = cmp_al_imm8;
     instructions[0x3D] = cmp_eax_imm32;
-
-    instructions[0x3D] = cmp_rm16_r16;
+    instructions[0x3D] = cmp_rm32_r32;
 
     for (i = 0; i < 8; i++) {
         instructions[0x40 + i] = inc_r32;
@@ -637,6 +698,7 @@ void init_instructions(void){
     instructions[0x68] = push_imm32;
     instructions[0x6A] = push_imm8;
 
+
     instructions[0x70] = jo;//overflow
     instructions[0x71] = jno;//not overflow
     instructions[0x72] = jc;//carry
@@ -649,6 +711,7 @@ void init_instructions(void){
     instructions[0x7C] = jl;//less
     instructions[0x7E] = jle;//less or equal
 
+    instructions[0x80] = code_80;
     instructions[0x81] = code_81;
 
     instructions[0x83] = code_83;
@@ -660,6 +723,7 @@ void init_instructions(void){
     instructions[0x8D] = lea;
 
     instructions[0xA0] = mov_al_moffs8;
+    instructions[0xA3] = mov_moffs32_eax;
 
     //0xb0~0xb7
     for (i = 0; i < 8; i++) {
