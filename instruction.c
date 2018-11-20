@@ -570,7 +570,10 @@ static void mov_al_moffs8(Emulator* emu){
 }
 
 static void mov_moffs32_eax(Emulator* emu){
+    uint32_t addr=get_code32(emu,1);
+    set_memory32(emu,addr,get_register32(emu,EAX));
 
+    emu->eip+=5;
 }
 
 //new
