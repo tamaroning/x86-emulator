@@ -10,6 +10,7 @@
 #define SIGN_FLAG (1 << 7)
 #define OVERFLOW_FLAG (1 << 11)
 
+#define PARITY_FLAG (1<<2)
 #define INTERRUPT_FLAG (1 << 9)
 
 /* プログラムカウンタから相対位置にある符号無し8bit値を取得 */
@@ -42,11 +43,15 @@ void set_register32(Emulator* emu, int index, uint32_t value);
 /* メモリのindex番地の8bit値を取得する */
 uint32_t get_memory8(Emulator* emu, uint32_t address);
 
+uint32_t get_memory16(Emulator* emu, uint32_t address);
 /* メモリのindex番地の32bit値を取得する */
 uint32_t get_memory32(Emulator* emu, uint32_t address);
 
 /* メモリのindex番地に8bit値を設定する */
 void set_memory8(Emulator* emu, uint32_t address, uint32_t value);
+
+void set_memory16(Emulator* emu, uint32_t address, uint32_t value);
+
 
 /* メモリのindex番地に32bit値を設定する */
 void set_memory32(Emulator* emu, uint32_t address, uint32_t value);

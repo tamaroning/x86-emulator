@@ -75,30 +75,49 @@ void set_memory8(Emulator* emu, uint32_t address, uint32_t value)
 void set_memory32(Emulator* emu, uint32_t address, uint32_t value)
 {
     int i;
-
     /* リトルエンディアンでメモリの値を設定する */
     for (i = 0; i < 4; i++) {
         set_memory8(emu, address + i, value >> (i * 8));
     }
 }
 
+void set_memory16(Emulator* emu, uint32_t address, uint32_t value)
+{
+    int i;
+    /* リトルエンディアンでメモリの値を設定する */
+    for (i = 0; i < 2; i++) {
+        set_memory8(emu, address + i, value >> (i * 8));
+    }
+}
+
+
 uint32_t get_memory8(Emulator* emu, uint32_t address)
 {
     return emu->memory[address];
+}
+
+uint32_t get_memory16(Emulator* emu, uint32_t address)
+{
+    int i;
+    uint32_t ret = 0;
+    /* リトルエンディアンでメモリの値を取得する */
+    for (i = 0; i < 2; i++) {
+        ret |= get_memory8(emu, address + i) << (8 * i);
+    }
+    return ret;
 }
 
 uint32_t get_memory32(Emulator* emu, uint32_t address)
 {
     int i;
     uint32_t ret = 0;
-
     /* リトルエンディアンでメモリの値を取得する */
     for (i = 0; i < 4; i++) {
         ret |= get_memory8(emu, address + i) << (8 * i);
     }
-
     return ret;
 }
+
 
 void push32(Emulator* emu, uint32_t value)
 {
@@ -152,6 +171,16 @@ void set_overflow(Emulator* emu, int is_overflow)
     }
 }
 
+void set_parity(Emulator* emu, int is_parity)
+{
+    if (is_parity) {
+        emu->eflags |= PARITY_FLAG;
+    } else {
+        emu->eflags &= ~PARITY_FLAG;
+    }
+}
+
+
 void set_interrupt(Emulator* emu, int is_interrupt)
 {
     if (is_interrupt) {
@@ -160,8 +189,6 @@ void set_interrupt(Emulator* emu, int is_interrupt)
         emu->eflags &= ~INTERRUPT_FLAG;
     }
 }
-
-
 
 int is_carry(Emulator* emu)
 {
@@ -181,6 +208,11 @@ int is_sign(Emulator* emu)
 int is_overflow(Emulator* emu)
 {
     return (emu->eflags & OVERFLOW_FLAG) != 0;
+}
+
+int is_parity(Emulator* emu)
+{
+    return (emu->eflags & PARITY_FLAG) != 0;
 }
 
 int is_interrupt(Emulator* emu)

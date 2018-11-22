@@ -241,6 +241,21 @@ static void code_83(Emulator* emu)
     }
 }
 
+static void test_rm32_r32(Emulator* emu){
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    uint32_t rm32,r32;
+    rm32=get_rm32(emu,&modrm);
+    r32=get_r32(emu,&modrm);
+    rm32 = rm32 & r32;
+    set_zero(emu,rm32==0);
+    set_carry(emu,0);
+    set_overflow(emu,0);
+
+}
+
+
 static void mov_rm8_imm8(Emulator* emu)
 {   
     emu->eip += 1;
@@ -441,9 +456,22 @@ static void jl(Emulator* emu)//jump if less
     emu->eip += (diff + 2);
 }
 
+static void jge(Emulator* emu)//jump if less
+{
+    //sf==of
+    int diff = (is_sign(emu) == is_overflow(emu)) ? get_sign_code8(emu, 1) : 0;
+    emu->eip += (diff + 2);
+}
+
 static void jle(Emulator* emu)//jump less or equal
 {
     int diff = (is_zero(emu) || (is_sign(emu) != is_overflow(emu))) ? get_sign_code8(emu, 1) : 0;
+    emu->eip += (diff + 2);
+}
+
+static void jg(Emulator* emu)//jump less or equal
+{
+    int diff = (!is_zero(emu) && is_sign(emu)==is_overflow(emu)) ? get_sign_code8(emu, 1) : 0;
     emu->eip += (diff + 2);
 }
 
@@ -454,6 +482,14 @@ static void jbe(Emulator* emu)//jump if less
     int diff = (is_carry(emu)||is_zero(emu)) ? get_sign_code8(emu, 1) : 0;
     emu->eip += (diff + 2);
 }
+
+static void ja(Emulator* emu)//jump if less
+{
+    //CF==1 or ZF==1
+    int diff = (!is_carry(emu) && !is_zero(emu)) ? get_sign_code8(emu, 1) : 0;
+    emu->eip += (diff + 2);
+}
+
 
 
 //int
@@ -482,6 +518,30 @@ static void lea(Emulator* emu){
     uint32_t addr=calc_memory_address(emu, &modrm);
     set_r32(emu,&modrm,addr);
 }
+
+static void pushfd(Emulator *emu){
+    if(opsiz==0){
+        push32(emu,emu->eflags);
+    }else{
+        int32_t address = get_register32(emu, ESP) - 2;//esp-=4
+        set_register32(emu, ESP, address);
+        set_memory16(emu, address, emu->eflags & 0xffff);
+    }
+    emu->eip++;
+}
+
+static void popfd(Emulator* emu){
+    if(opsiz==0){
+        emu->eflags=pop32(emu);
+    }else{
+        uint32_t address = get_register32(emu, ESP);
+        emu->eflags |= get_memory16(emu, address);
+        set_register32(emu, ESP, address + 2);//esp+=4
+    }
+    emu->eip++;
+}
+
+
 
 static void code_80(Emulator* emu){
     emu->eip++;
@@ -661,10 +721,15 @@ static void code_66(Emulator* emu){
     opsiz=2;
     emu->eip++;
 }
+
+static void cli(Emulator* emu){
+    set_interrupt(emu,0);
+    emu->eip++; 
+}
+
 static void sti(Emulator* emu){
     set_interrupt(emu,1);
-    emu->eip++;
-    
+    emu->eip++; 
 }
 
 void init_instructions(void){
@@ -709,21 +774,28 @@ void init_instructions(void){
     instructions[0x74] = jz;//zero
     instructions[0x75] = jnz;//not zero
     instructions[0x76] = jbe;
+    instructions[0x77] = ja;
     instructions[0x78] = js;//sign
     instructions[0x79] = jns;//not sign
     instructions[0x7C] = jl;//less
+    instructions[0x7D] = jge;//
     instructions[0x7E] = jle;//less or equal
+    instructions[0x7F] = jg;
 
     instructions[0x80] = code_80;
     instructions[0x81] = code_81;
 
     instructions[0x83] = code_83;
+    instructions[0x85] = test_rm32_r32;
     instructions[0x88] = mov_rm8_r8;
     instructions[0x89] = mov_rm32_r32;
     instructions[0x8A] = mov_r8_rm8;
     instructions[0x8B] = mov_r32_rm32;
 
     instructions[0x8D] = lea;
+    instructions[0x9C] = pushfd;
+    instructions[0x9D] = popfd;
+    
 
     instructions[0xA0] = mov_al_moffs8;
     instructions[0xA3] = mov_moffs32_eax;
@@ -751,6 +823,8 @@ void init_instructions(void){
     instructions[0xEC] = in_al_dx;
     instructions[0xEE] = out_dx_al;
 
+
+    instructions[0xFA] = cli;
     instructions[0xFB] = sti;
 
     instructions[0xFF] = code_ff;
