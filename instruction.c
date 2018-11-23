@@ -137,6 +137,38 @@ static void push_imm8(Emulator* emu)
     emu->eip += 2;
 }
 
+static void imul_r32_rm32_imm8(Emulator* emu){
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    if(opsiz==0){
+        uint32_t rm32;
+        int8_t imm8;
+        int32_t res;
+        int64_t temp;
+
+        rm32=get_rm32(emu,&modrm);
+        imm8=get_sign_code8(emu,0);
+
+        res=rm32*imm8;
+        temp=rm32*imm8;
+        
+        set_r32(emu,&modrm,(uint32_t)res);
+
+        set_carry(emu,temp!=res);
+        set_overflow(emu,temp!=res);
+
+    }else{
+        puts("error imul");
+        exit(1);
+    }
+
+    
+    
+
+    emu->eip++;
+}
+
 static void add_rm32_imm8(Emulator* emu, ModRM* modrm)
 {
     uint32_t rm32 = get_rm32(emu, modrm);
@@ -289,22 +321,41 @@ static void lidt(Emulator* emu, ModRM* modrm){
     printf("%0d",ret);
 }
 
+static void movzx_r32_rm8(Emulator* emu,ModRM* modrm){
+    uint8_t rm8=get_rm8(emu,modrm);
+    set_r32(emu,modrm,(uint32_t)rm8);
+}
+
 static void code_0F(Emulator* emu){
-    emu->eip+=2;
-    ModRM modrm;
-    parse_modrm(emu,&modrm);
-    switch(modrm.nnn){
-        case 2:
-            //lgdt m16& 32
-            lgdt(emu, &modrm);
-            break;
-        case 3:
-            //lidt m16& 32
-            lidt(emu, &modrm);
-            break;
-        default:
+    emu->eip++;
+    uint8_t opecode2=get_code8(emu,0);
+    emu->eip++;
+
+    if(opecode2==0x01){
+        ModRM modrm;
+        parse_modrm(emu,&modrm);
+        switch(modrm.nnn){
+            case 2:
+                //lgdt m16& 32
+                lgdt(emu, &modrm);
+                break;
+            case 3:
+                //lidt m16& 32
+                lidt(emu, &modrm);
+                break;
+            default:
             puts("error not implimented");
-    }    
+            exit(1);
+        }
+    }else if(opecode2==0xb6){
+        //movzx
+        ModRM modrm;
+        parse_modrm(emu,&modrm);
+        movzx_r32_rm8(emu,&modrm);
+    }else{
+        puts("error not implimented");
+        exit(1);
+    }
 }
 
 //mov al,[dx]
@@ -572,7 +623,7 @@ static void code_81(Emulator* emu)
             break;
         default:
             puts("error code:81");
-            exit(0);
+            exit(1);
             break;
     }
 }
@@ -580,7 +631,7 @@ static void code_81(Emulator* emu)
 /*
 static void cmp_rm16_r16(Emulator* emu){
     puts("cmpえらー");
-    exit(0);
+    exit(1);
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
@@ -765,7 +816,7 @@ void init_instructions(void){
     instructions[0x66] = code_66;
     instructions[0x68] = push_imm32;
     instructions[0x6A] = push_imm8;
-
+    instructions[0x6B] = imul_r32_rm32_imm8;
 
     instructions[0x70] = jo;//overflow
     instructions[0x71] = jno;//not overflow

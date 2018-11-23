@@ -127,17 +127,17 @@ int main(int argc, char* argv[])
 
     init_instructions();
 
-    ///eip,esp=0x7c00 memory1MBのemu作成
+    ///eip=esp=0x7c00 memory1MBのemu作成
    	emu = create_emu(memsiz, 0x7c00, 0x7c00);
 
     read_binary(emu, argv[1], haribote);
-
+    i=0;
     while (emu->eip < memsiz) {
         uint8_t code = get_code8(emu, 0);
         //バイナリ出力
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
-            printf("EIP = %X, Code = %02X\n", emu->eip, code);
+            printf("%d: EIP = %X, Code = %02X\n",i++, emu->eip, code);
             //printf("esp=%x\n",emu->registers[ESP]);
         }
 
@@ -155,11 +155,11 @@ int main(int argc, char* argv[])
 
         /* EIPが0になったらプログラム終了 */
         if (emu->eip == 0) {
-            printf("\n\nend of program.\n\n");
+            printf("\n\nend of program.(eip=0)\n\n");
             break;
         }
     }
-    //puts("end");
+    puts("\n\nend of the program.\n\n");
 
     dump_registers(emu);
     destroy_emu(emu);
