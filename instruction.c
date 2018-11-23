@@ -78,6 +78,7 @@ static void mov_rm8_r8(Emulator* emu)
     parse_modrm(emu, &modrm);
     uint32_t r8 = get_r8(emu, &modrm);
     set_rm8(emu, &modrm, r8);
+    puts("q");
 }
 
 static void mov_rm32_r32(Emulator* emu)

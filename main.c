@@ -7,8 +7,8 @@
 #include "emulator_function.h"//
 #include "instruction.h"
 
-//1MB
-#define MEMORY_SIZE (1024 * 1024)
+//1024MB
+#define MEMORY_SIZE (1024 * 1024 * 1024)
 
 char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
 
@@ -98,6 +98,11 @@ int opt_remove_at(int argc, char* argv[], int index)
     }
 }
 
+void dump_bin(Emulator* emu){
+    printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -1), get_code8(emu, -1));
+    printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
+}
+
 int main(int argc, char* argv[])
 {
     Emulator* emu;
@@ -133,11 +138,12 @@ int main(int argc, char* argv[])
     read_binary(emu, argv[1], haribote);
     i=0;
     while (emu->eip < memsiz) {
+        i++;
         uint8_t code = get_code8(emu, 0);
         //バイナリ出力
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
-            printf("%d: EIP = %X, Code = %02X\n",i++, emu->eip, code);
+            printf("%d: EIP = %X, Code = %02X\n",i, emu->eip, code);
             //printf("esp=%x\n",emu->registers[ESP]);
         }
 
@@ -147,7 +153,7 @@ int main(int argc, char* argv[])
 			printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
             break;
         }
-
+        if(i==3387)dump_bin(emu);
         //命令実行
         instructions[code](emu);
         
