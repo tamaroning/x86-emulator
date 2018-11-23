@@ -123,7 +123,6 @@ void set_rm8(Emulator* emu, ModRM* modrm, uint8_t value)
         set_register8(emu, modrm->rm, value);
     } else {
         uint32_t address = calc_memory_address(emu, modrm);
-        puts("n");
         printf("0x%X",address);
         set_memory8(emu, address, value);
     }
