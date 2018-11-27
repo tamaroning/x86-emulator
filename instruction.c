@@ -16,6 +16,12 @@
 
 instruction_func_t* instructions[256];//index=opecode
 
+void error(Emulator* emu){
+    printf("error see you~\n");
+    exit(0);
+    return;
+}
+
 static void mov_r8_imm8(Emulator* emu)//
 {
     uint8_t reg = get_code8(emu, 0) - 0xB0;
@@ -25,6 +31,7 @@ static void mov_r8_imm8(Emulator* emu)//
 
 static void mov_r32_imm32(Emulator* emu)//
 {
+    if(opsiz)error(emu);
     uint8_t reg = get_code8(emu, 0) - 0xB8;
     uint32_t value = get_code32(emu, 1);
     set_register32(emu, reg, value);
@@ -42,6 +49,7 @@ static void mov_r8_rm8(Emulator* emu)
 
 static void mov_r32_rm32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -51,6 +59,7 @@ static void mov_r32_rm32(Emulator* emu)
 
 static void add_rm32_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -62,6 +71,7 @@ static void add_rm32_r32(Emulator* emu)
 
 static void or_rm32_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -83,6 +93,7 @@ static void mov_rm8_r8(Emulator* emu)
 
 static void mov_rm32_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -92,6 +103,7 @@ static void mov_rm32_r32(Emulator* emu)
 
 static void inc_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint8_t reg = get_code8(emu, 0) - 0x40;
     set_register32(emu, reg, get_register32(emu, reg) + 1);
     emu->eip += 1;
@@ -100,6 +112,7 @@ static void inc_r32(Emulator* emu)
 //new
 static void dec_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint8_t reg = get_code8(emu, 0) - 0x40;
     uint32_t r32= get_register32(emu, reg);
     set_register32(emu, reg, r32 - 1);
@@ -112,6 +125,7 @@ static void dec_r32(Emulator* emu)
 
 static void push_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint8_t reg = get_code8(emu, 0) - 0x50;
     push32(emu, get_register32(emu, reg));
     emu->eip += 1;
@@ -119,6 +133,7 @@ static void push_r32(Emulator* emu)
 
 static void pop_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint8_t reg = get_code8(emu, 0) - 0x58;
     set_register32(emu, reg, pop32(emu));
     emu->eip += 1;
@@ -126,6 +141,7 @@ static void pop_r32(Emulator* emu)
 
 static void push_imm32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint32_t value = get_code32(emu, 1);
     push32(emu, value);
     emu->eip += 5;
@@ -139,6 +155,7 @@ static void push_imm8(Emulator* emu)
 }
 
 static void imul_r32_rm32_imm8(Emulator* emu){
+    if(opsiz)error(emu);
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
@@ -164,14 +181,12 @@ static void imul_r32_rm32_imm8(Emulator* emu){
         exit(1);
     }
 
-    
-    
-
     emu->eip++;
 }
 
 static void add_rm32_imm8(Emulator* emu, ModRM* modrm)
 {
+    if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
     emu->eip += 1;
@@ -180,6 +195,7 @@ static void add_rm32_imm8(Emulator* emu, ModRM* modrm)
 
 
 static void xor_rm32_r32(Emulator* emu){
+    if(opsiz)error(emu);
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
@@ -208,6 +224,7 @@ static void cmp_rm8_imm8(Emulator* emu,ModRM* modrm){
 
 static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm)
 {
+    if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
     emu->eip += 1;
@@ -217,6 +234,7 @@ static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm)
 
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm)
 {
+    if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
     emu->eip += 1;
@@ -227,6 +245,7 @@ static void sub_rm32_imm8(Emulator* emu, ModRM* modrm)
 
 static void sub_rm32_imm32(Emulator* emu, ModRM* modrm)
 {
+    if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm32 = (uint32_t)get_sign_code32(emu, 0);
     emu->eip += 4;
@@ -237,6 +256,7 @@ static void sub_rm32_imm32(Emulator* emu, ModRM* modrm)
 
 //new
 static void and_rm8_imm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
     uint8_t imm8=get_code8(emu,0);
     uint8_t rm8=get_rm8(emu,modrm);
     rm8 &= imm8;
@@ -275,6 +295,7 @@ static void code_83(Emulator* emu)
 }
 
 static void test_rm32_r32(Emulator* emu){
+    if(opsiz)error(emu);
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
@@ -301,6 +322,7 @@ static void mov_rm8_imm8(Emulator* emu)
 
 static void mov_rm32_imm32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -323,6 +345,7 @@ static void lidt(Emulator* emu, ModRM* modrm){
 }
 
 static void movzx_r32_rm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
     uint8_t rm8=get_rm8(emu,modrm);
     set_r32(emu,modrm,(uint32_t)rm8);
 }
@@ -362,6 +385,7 @@ static void code_0F(Emulator* emu){
 //mov al,[dx]
 static void in_al_dx(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint16_t address = get_register32(emu, EDX) & 0xffff;
     uint8_t value = io_in8(address);
     set_register8(emu, AL, value);
@@ -371,6 +395,7 @@ static void in_al_dx(Emulator* emu)
 //mov [dx],al
 static void out_dx_al(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint16_t address = get_register32(emu, EDX) & 0xffff;
     uint8_t value = get_register8(emu, AL);
     io_out8(address, value);
@@ -379,6 +404,7 @@ static void out_dx_al(Emulator* emu)
 
 static void inc_rm32(Emulator* emu, ModRM* modrm)
 {
+    if(opsiz)error(emu);
     uint32_t value = get_rm32(emu, modrm);
     set_rm32(emu, modrm, value + 1);
 }
@@ -401,6 +427,7 @@ static void code_ff(Emulator* emu)
 
 static void call_rel32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     int32_t diff = get_sign_code32(emu, 1);
     push32(emu, emu->eip + 5);
     emu->eip += (diff + 5);
@@ -443,6 +470,7 @@ static void cmp_al_imm8(Emulator* emu)
 
 static void cmp_eax_imm32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     uint32_t value = get_code32(emu, 1);
     uint32_t eax = get_register32(emu, EAX);
     uint64_t result = (uint64_t)eax - (uint64_t)value;
@@ -452,6 +480,7 @@ static void cmp_eax_imm32(Emulator* emu)
 
 static void cmp_r32_rm32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -463,6 +492,7 @@ static void cmp_r32_rm32(Emulator* emu)
 
 static void cmp_rm32_r32(Emulator* emu)
 {
+    if(opsiz)error(emu);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -474,6 +504,7 @@ static void cmp_rm32_r32(Emulator* emu)
 
 //new
 static void cmp_rm32_imm32(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
     uint32_t imm32=get_code32(emu,0);
     uint32_t rm32=get_rm32(emu,modrm);
     uint64_t result=(uint64_t)rm32-(uint64_t)imm32;
@@ -562,7 +593,8 @@ static void swi(Emulator* emu)
 //new
 //lea
 //第2オペランド（読み込み元）の実効アドレスを計算し、第1オペランド（格納先）に格納
-static void lea(Emulator* emu){
+static void lea_r32_m(Emulator* emu){
+    if(opsiz)error(emu);
     //printf("ebp:%08x\n",emu->registers[EBP]);
     emu->eip += 1;
     ModRM modrm;
@@ -629,17 +661,6 @@ static void code_81(Emulator* emu)
     }
 }
 
-/*
-static void cmp_rm16_r16(Emulator* emu){
-    puts("cmpえらー");
-    exit(1);
-    emu->eip++;
-    ModRM modrm;
-    parse_modrm(emu,&modrm);
-    //int32_t rm16 = (int32_t)get_rm16(emu,&modrm);
-    //get_r
-}
-*/
 
 
 static void sar_rm8_imm8(Emulator* emu,ModRM* modrm){
@@ -676,12 +697,14 @@ static void sal_rm8_imm8(Emulator* emu,ModRM* modrm){
 
 //（セグメント：オフセット）のバイトをALに転送します
 static void mov_al_moffs8(Emulator* emu){
+    if(opsiz)error(emu);
     uint32_t offs=get_code32(emu,1);
     set_register32(emu,AL,offs);
     emu->eip+=5;
 }
 
 static void mov_moffs32_eax(Emulator* emu){
+    if(opsiz)error(emu);
     uint32_t addr=get_code32(emu,1);
     set_memory32(emu,addr,get_register32(emu,EAX));
 
@@ -709,6 +732,7 @@ static void code_C0(Emulator* emu){
 }
 
 static void shr_rm32_imm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
     uint32_t rm32,res32;
     uint8_t imm8;
     
@@ -726,6 +750,7 @@ static void shr_rm32_imm8(Emulator* emu,ModRM* modrm){
 }
 
 static void sar_rm32_imm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
     uint32_t rm32,res32;
     uint8_t imm8;
     int64_t sgn;
@@ -752,8 +777,6 @@ static void code_C1(Emulator* emu){
         //case 4://shl rm32 imm8
             //break;
 
-            //帰宅したらシフト系は関数にまとめますーーーー
-        
         //r/m32を2でimm8回符号なし除算します
         case 5://shr rm32 imm8
             shr_rm32_imm8(emu,&modrm);
@@ -844,7 +867,7 @@ void init_instructions(void){
     instructions[0x8A] = mov_r8_rm8;
     instructions[0x8B] = mov_r32_rm32;
 
-    instructions[0x8D] = lea;
+    instructions[0x8D] = lea_r32_m;
     instructions[0x9C] = pushfd;
     instructions[0x9D] = popfd;
     

@@ -153,7 +153,8 @@ int main(int argc, char* argv[])
 			printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
             break;
         }
-        if(i==3387)dump_bin(emu);
+        //if(i==3387)dump_bin(emu);//デバッグ用
+
         //命令実行
         instructions[code](emu);
         

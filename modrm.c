@@ -165,8 +165,8 @@ void set_r8(Emulator* emu, ModRM* modrm, uint8_t value)
 
 void set_r32(Emulator* emu, ModRM* modrm, uint32_t value)
 {
-    if(opsiz)set_register16(emu, modrm->reg_index, (uint16_t)value);
-    else set_register32(emu, modrm->reg_index, value);
+    /*if(opsiz)set_register16(emu, modrm->reg_index, (uint16_t)value);
+    else */set_register32(emu, modrm->reg_index, value);
 }
 
 uint8_t get_r8(Emulator* emu, ModRM* modrm)
@@ -176,6 +176,6 @@ uint8_t get_r8(Emulator* emu, ModRM* modrm)
 
 uint32_t get_r32(Emulator* emu, ModRM* modrm)
 {
-    if(opsiz)return (uint16_t)get_register16(emu, modrm->reg_index);
+    //if(opsiz)return (uint16_t)get_register16(emu, modrm->reg_index);
     return get_register32(emu, modrm->reg_index);
 }
