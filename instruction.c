@@ -49,12 +49,19 @@ static void mov_r8_rm8(Emulator* emu)
 
 static void mov_r32_rm32(Emulator* emu)
 {
-    if(opsiz)error(emu);
-    emu->eip += 1;
-    ModRM modrm;
-    parse_modrm(emu, &modrm);
-    uint32_t rm32 = get_rm32(emu, &modrm);
-    set_r32(emu, &modrm, rm32);
+    if(!opsiz){
+        emu->eip += 1;
+        ModRM modrm;
+        parse_modrm(emu, &modrm);
+        uint32_t rm32 = get_rm32(emu, &modrm);
+        set_r32(emu, &modrm, rm32);
+    }else{
+        emu->eip += 1;
+        ModRM modrm;
+        parse_modrm(emu, &modrm);
+        uint16_t rm16 = get_rm16(emu, &modrm);
+        set_r16(emu, &modrm, rm16);
+    }
 }
 
 static void add_rm32_r32(Emulator* emu)
@@ -93,12 +100,20 @@ static void mov_rm8_r8(Emulator* emu)
 
 static void mov_rm32_r32(Emulator* emu)
 {
-    if(opsiz)error(emu);
-    emu->eip += 1;
-    ModRM modrm;
-    parse_modrm(emu, &modrm);
-    uint32_t r32 = get_r32(emu, &modrm);
-    set_rm32(emu, &modrm, r32);
+    if(!opsiz){
+        emu->eip += 1;
+        ModRM modrm;
+        parse_modrm(emu, &modrm);
+        uint32_t r32 = get_r32(emu, &modrm);
+        set_rm32(emu, &modrm, r32);
+    }else{
+        emu->eip += 1;
+        ModRM modrm;
+        parse_modrm(emu, &modrm);
+        uint16_t r16 = get_r16(emu, &modrm);
+        set_rm16(emu, &modrm, r16);
+    }
+    
 }
 
 static void inc_r32(Emulator* emu)

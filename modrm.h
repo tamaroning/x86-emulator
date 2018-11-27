@@ -55,6 +55,10 @@ void parse_modrm(Emulator* emu, ModRM* modrm);
  */
 uint32_t calc_memory_address(Emulator* emu, ModRM* modrm);
 
+uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp);
+
+
+
 /* rm32のレジスタまたはメモリの32bit値を取得する */
 uint32_t get_rm32(Emulator* emu, ModRM* modrm);
 
@@ -80,5 +84,11 @@ uint8_t get_rm8(Emulator* emu, ModRM* modrm);
 void set_rm8(Emulator* emu, ModRM* modrm, uint8_t value);
 uint8_t get_r8(Emulator* emu, ModRM* modrm);
 void set_r8(Emulator* emu, ModRM* modrm, uint8_t value);
+
+//16bit ver
+uint16_t get_rm16(Emulator* emu, ModRM* modrm);
+void set_rm16(Emulator* emu, ModRM* modrm, uint8_t value);
+uint16_t get_r16(Emulator* emu, ModRM* modrm);
+void set_r16(Emulator* emu, ModRM* modrm, uint8_t value);
 
 #endif
