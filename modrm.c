@@ -11,13 +11,14 @@ void parse_sib(Emulator* emu, ModRM* modrm){
     //assert(emu != NULL && modrm->sib != NULL);//true確認
     memset(&modrm->sib, 0, sizeof(SIB));//全部を0に初期化
 
-    printf(" sib:%2X ",modrm->sib_byte);
+    //printf(" sib:%2X ",modrm->sib_byte);
 
-    modrm->sib.base_addr = ((modrm->sib_byte & 0xe0) >> 5);
-    modrm->sib.reg_index = ((modrm->sib_byte & 0x1c) >> 2);//==ESPなら使わない
-    modrm->sib.scale = modrm->sib_byte & 3;
+    modrm->sib.scale = ((modrm->sib_byte & 0xc0) >> 6);
+    modrm->sib.reg_index = ((modrm->sib_byte & 0x38) >> 3);//==ESPなら使わない
+    modrm->sib.base = modrm->sib_byte & 0x7;
 
     modrm->sib.scale = 1 << modrm->sib.scale;//scale=1,2,4,8
+    //modrm->sib.base_addr = get_register32(emu,modrm->sib.base_addr); 
 
     emu->eip++;
 }
@@ -27,13 +28,15 @@ uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp){
     
     //[base+index*n+disp]
     //index=espのときはつかわない
-    uint32_t reg=get_register32(emu,sib->reg_index);
 
     //printf("%2X",emu->memory[emu->eip]);
-    if(sib->reg_index != ESP){
-        return sib->base_addr + reg * sib->scale + disp;
+    if(sib->base != ESP){
+        puts("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        return get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale + disp;
     }else{
-        return sib->base_addr + disp;;
+        puts("ooooooooooooooooooooo0000000000000000000000");
+        //if(modrm.mod==0)return disp;
+        return get_register32(emu,EBP) + disp;
     }
 
 }
@@ -88,7 +91,6 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     } else if (modrm->mod == 1) {
         if (modrm->rm == 4) {
             //[--][--]+disp8
-            puts("1byte");
             //uint8_t disp=get_code8(emu,0);
             //emu->eip++;
 

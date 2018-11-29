@@ -3,8 +3,8 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "emulator.h"//
-#include "emulator_function.h"//
+#include "emulator.h"
+#include "emulator_function.h"
 #include "instruction.h"
 
 //1024MB
@@ -143,17 +143,18 @@ int main(int argc, char* argv[])
         //バイナリ出力
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
-            printf("%d: EIP = %X, Code = %02X\n",i, emu->eip, code);
+            printf("%d: EIP = %X, Code = %02X   ebp:%08X  esp:%08X \n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP]);
             //printf("esp=%x\n",emu->registers[ESP]);
         }
 
         if (instructions[code] == NULL) {
             //opecode未実装
             printf("\n\nNot Implemented: %X\n", code);
-			printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
+			dump_bin(emu);
+            //printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
             break;
         }
-        //if(i==3387)dump_bin(emu);//デバッグ用
+        if(i==350)dump_bin(emu);//デバッグ用
 
         //命令実行
         instructions[code](emu);

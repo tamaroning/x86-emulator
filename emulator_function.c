@@ -1,4 +1,5 @@
 #include "emulator_function.h"
+#include<stdio.h>
 
 uint32_t get_code8(Emulator* emu, int index)
 {
@@ -124,6 +125,7 @@ void push32(Emulator* emu, uint32_t value)
     int32_t address = get_register32(emu, ESP) - 4;//esp-=4
     set_register32(emu, ESP, address);
     set_memory32(emu, address, value);
+    //printf("------------------------------------push %x at %x\n",value,address);
 }
 
 uint32_t pop32(Emulator* emu)
@@ -131,6 +133,8 @@ uint32_t pop32(Emulator* emu)
     uint32_t address = get_register32(emu, ESP);
     uint32_t ret = get_memory32(emu, address);
     set_register32(emu, ESP, address + 4);//esp+=4
+    //printf("-------------------------------------pop %x from %x\n",ret,address);
+
 
     return ret;
 }

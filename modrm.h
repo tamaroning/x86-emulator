@@ -7,7 +7,7 @@
 
 typedef struct {
 
-    uint8_t base_addr, reg_index, scale;
+    uint8_t base, reg_index, scale;
     //addr:3bit reg_index:3bit scale:2bit
 
 }SIB;
@@ -28,7 +28,7 @@ typedef struct {
 
     union {
         int8_t disp8; //signed
-        uint32_t disp32;
+        int32_t disp32;
     };
 } ModRM;
 
