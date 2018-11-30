@@ -43,7 +43,6 @@ static void read_binary(Emulator* emu, const char* filename, int haribote)
 		bootinfo[2] = 640;
 		bootinfo[3] = 480;
 		bootinfo[4] = 0x01f0;
-	
 	}
     fclose(binary);
 }
@@ -151,10 +150,9 @@ int main(int argc, char* argv[])
             //opecode未実装
             printf("\n\nNot Implemented: %X\n", code);
 			dump_bin(emu);
-            //printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
             break;
         }
-        if(i==350)dump_bin(emu);//デバッグ用
+        //if(i==80)exit(0),dump_bin(emu);//デバッグ用
 
         //命令実行
         instructions[code](emu);

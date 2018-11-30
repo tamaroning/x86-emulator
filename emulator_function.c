@@ -243,3 +243,79 @@ void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result)
     /* 演算結果がオーバーフローしていたらOverflowフラグ設定 */
     set_overflow(emu, sign1 != sign2 && sign1 != signr);
 }
+
+void update_eflags_add(Emulator* emu,uint32_t v1,uint32_t v2,uint64_t result){
+    int sign1 = v1 >> 31;
+    int sign2 = v2 >> 31;
+    int signr = (result >> 31) & 1;
+
+    set_carry(emu, result >> 32);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>32);
+}
+
+//inc decはcarry変えない
+void update_eflags_inc(Emulator* emu,uint32_t v1){
+    uint64_t result=v1+1;
+    int sign1 = v1 >> 31;
+    int signr = (result >> 31) & 1;
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>32);
+}
+
+void update_eflags_dec(Emulator* emu,uint32_t v1){
+    uint64_t result=v1-1;
+    int sign1 = v1 >> 31;
+    int signr = (result >> 31) & 1;
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>32);
+}
+
+void update_eflags_or_and(Emulator* emu,uint32_t result){
+    int signr = (result >> 31) & 1;
+
+    set_carry(emu, 0);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, 0);
+}
+
+void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result){
+    int sign1 = v1 >> 7;
+    int sign2 = v2 >> 7;
+    int signr = (result >> 7) & 1;
+
+    set_carry(emu, result >> 8);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>8);
+    if(v2==1)set_overflow(emu,0);
+}
+
+
+void update_eflags_sar(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result){
+    int sign1 = v1 >> 31;
+    int sign2 = v2 >> 31;
+    int signr = (result >> 31) & 1;
+
+    set_carry(emu, result >> 32);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>32);
+    if(v2==1)set_overflow(emu,0);
+}
+
+void update_eflags_shr(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result){
+    int sign1 = v1 >> 31;
+    int sign2 = v2 >> 31;
+    int signr = (result >> 31) & 1;
+
+    set_carry(emu, result >> 32);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>32);
+    if(v2==1)set_overflow(emu,0);
+}

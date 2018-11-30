@@ -74,8 +74,19 @@ int32_t is_carry(Emulator* emu);
 int32_t is_zero(Emulator* emu);
 int32_t is_sign(Emulator* emu);
 int32_t is_overflow(Emulator* emu);
+int32_t is_interrupt(Emulator* emu);
 
-/* 減算によるEFLAGSの更新関数 */
+
 void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
+void update_eflags_add(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
+
+void update_eflags_inc(Emulator* emu,uint32_t v1);
+void update_eflags_dec(Emulator* emu,uint32_t v1);
+
+void update_eflags_or_and(Emulator* emu,uint32_t result);
+
+void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
+void update_eflags_sar(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result);
+void update_eflags_shr(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result);
 
 #endif
