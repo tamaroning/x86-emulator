@@ -224,6 +224,18 @@ int is_interrupt(Emulator* emu)
     return (emu->eflags & INTERRUPT_FLAG) != 0;
 }
 
+void update_eflags_sub8(Emulator* emu, uint8_t v1, uint8_t v2, uint16_t result){
+    /* 各値の符号を取得 */
+    int sign1 = v1 >> 7;
+    int sign2 = v2 >> 7;
+    int signr = (result >> 7) & 1;
+
+    set_carry(emu, result >> 7);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, sign1 != sign2 && sign1 != signr);
+}
+
 void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result)
 {
     /* 各値の符号を取得 */
@@ -291,7 +303,7 @@ void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result){
     set_carry(emu, result >> 8);
     set_zero(emu, result == 0);
     set_sign(emu, signr);
-    set_overflow(emu, result>>8);
+    //set_overflow(emu, result>>8);
     if(v2==1)set_overflow(emu,0);
 }
 
@@ -304,7 +316,7 @@ void update_eflags_sar(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result){
     set_carry(emu, result >> 32);
     set_zero(emu, result == 0);
     set_sign(emu, signr);
-    set_overflow(emu, result>>32);
+    //set_overflow(emu, result>>32);
     if(v2==1)set_overflow(emu,0);
 }
 
@@ -316,6 +328,5 @@ void update_eflags_shr(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result){
     set_carry(emu, result >> 32);
     set_zero(emu, result == 0);
     set_sign(emu, signr);
-    set_overflow(emu, result>>32);
-    if(v2==1)set_overflow(emu,0);
+    set_overflow(emu, v1>>31);//もとoperandの最上位
 }

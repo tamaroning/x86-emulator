@@ -72,7 +72,6 @@ static void add_rm32_r32(Emulator* emu){
     set_rm32(emu, &modrm, rm32 + r32);
 
     update_eflags_add(emu,rm32,r32,rm32+r32);
-
 }
 
 
@@ -119,8 +118,9 @@ static void mov_rm32_r32(Emulator* emu){
 
 static void inc_r32(Emulator* emu){
     if(opsiz)error(emu);
-    uint8_t reg = get_code8(emu, 0) - 0x40;
-    set_register32(emu, reg, get_register32(emu, reg) + 1);
+    uint32_t r32 = get_register32(emu,get_code8(emu, 0) - 0x40);
+    set_register32(emu, get_code8(emu,0), r32 + 1);
+    update_eflags_inc(emu,r32);
     emu->eip += 1;
 }
 
@@ -130,11 +130,7 @@ static void dec_r32(Emulator* emu){
     uint8_t reg = get_code8(emu, 0) - 0x40;
     uint32_t r32= get_register32(emu, reg);
     set_register32(emu, reg, r32 - 1);
-
-    set_sign(emu,r32-1<0);
-    set_overflow(emu,r32==0);
-    set_zero(emu,r32==1);
-
+    update_eflags_dec(emu,r32);
     emu->eip += 1;
 }
 
@@ -227,7 +223,8 @@ static void cmp_rm8_imm8(Emulator* emu,ModRM* modrm){
     uint8_t imm8=get_code8(emu,0);
 
     uint16_t result = (uint16_t)rm8 - (uint16_t)imm8;
-    update_eflags_sub(emu, (uint32_t)rm8, (uint32_t)imm8, (uint64_t)result);
+
+    update_eflags_sub8(emu,rm8,imm8,result);
 
     emu->eip++;
 }
@@ -403,8 +400,9 @@ static void out_dx_al(Emulator* emu){
 
 static void inc_rm32(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
-    uint32_t value = get_rm32(emu, modrm);
-    set_rm32(emu, modrm, value + 1);
+    uint32_t rm32 = get_rm32(emu, modrm);
+    set_rm32(emu, modrm, rm32 + 1);
+    update_eflags_inc(emu,rm32);
 }
 
 static void code_ff(Emulator* emu){
@@ -456,8 +454,8 @@ static void near_jump(Emulator* emu)
 static void cmp_al_imm8(Emulator* emu){
     uint8_t value = get_code8(emu, 1);
     uint8_t al = get_register8(emu, AL);
-    uint64_t result = (uint64_t)al - (uint64_t)value;
-    update_eflags_sub(emu, al, value, result);
+    uint16_t result = (uint16_t)al - (uint16_t)value;
+    update_eflags_sub8(emu, al, value, result);
     emu->eip += 2;
 }
 

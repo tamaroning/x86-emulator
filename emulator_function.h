@@ -76,8 +76,9 @@ int32_t is_sign(Emulator* emu);
 int32_t is_overflow(Emulator* emu);
 int32_t is_interrupt(Emulator* emu);
 
-
+void update_eflags_sub8(Emulator* emu, uint8_t v1, uint8_t v2, uint16_t result);
 void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
+
 void update_eflags_add(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
 
 void update_eflags_inc(Emulator* emu,uint32_t v1);
