@@ -366,16 +366,17 @@ static void code_0F(Emulator* emu){
                 lidt(emu, &modrm);
                 break;
             default:
-            puts("error not implimented");
-            exit(1);
+                puts("error not implimented");
+                exit(1);
+                break;
         }
-    }else if(opecode2==0xb6){
+    }/*else if(opecode2==0xb6){
         //movzx
         ModRM modrm;
         parse_modrm(emu,&modrm);
         movzx_r32_rm8(emu,&modrm);
-    }else{
-        puts("error not implimented");
+    }*/else{
+        puts("0F error not implimented opecode2");
         exit(1);
     }
 }
@@ -799,7 +800,7 @@ void init_instructions(void){
     memset(instructions, 0, sizeof(instructions));
     instructions[0x01] = add_rm32_r32;
     instructions[0x09] = or_rm32_r32;
-    //instructions[0x0F] = code_0F;
+    instructions[0x0F] = code_0F;
 
     //instructions[0x31] = xor_rm32_r32;
 

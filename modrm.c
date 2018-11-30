@@ -31,10 +31,8 @@ uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp){
 
     //printf("%2X",emu->memory[emu->eip]);
     if(sib->base != ESP){
-        puts("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         return get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale + disp;
     }else{
-        puts("ooooooooooooooooooooo0000000000000000000000");
         //if(modrm.mod==0)return disp;
         return get_register32(emu,EBP) + disp;
     }
