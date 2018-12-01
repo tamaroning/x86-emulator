@@ -77,7 +77,6 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     if (modrm->mod == 0) {
         if (modrm->rm == 4) {
             //[--][--]
-
             return sib_calc_mem_addr(emu, &(modrm->sib), 0);
             //printf("not implemented ModRM mod = 0, rm = 4\n");
             //exit(0);
@@ -89,9 +88,6 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     } else if (modrm->mod == 1) {
         if (modrm->rm == 4) {
             //[--][--]+disp8
-            //uint8_t disp=get_code8(emu,0);
-            //emu->eip++;
-
             return sib_calc_mem_addr(emu, &(modrm->sib), (uint32_t)(modrm->disp8));
             //printf("not implemented ModRM mod = 1, rm = 4\n");
             //exit(0);
@@ -101,9 +97,6 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     } else if (modrm->mod == 2) {
         if (modrm->rm == 4) {
             //[--][--]+disp32
-            //uint32_t disp=get_code32(emu,0);
-            //emu->eip+=4;
-
             return sib_calc_mem_addr(emu, &(modrm->sib), modrm->disp32);
             //printf("not implemented ModRM mod = 2, rm = 4\n");
             //exit(0);

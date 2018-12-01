@@ -125,7 +125,7 @@ void push32(Emulator* emu, uint32_t value)
     int32_t address = get_register32(emu, ESP) - 4;//esp-=4
     set_register32(emu, ESP, address);
     set_memory32(emu, address, value);
-    printf("------------------------------------push %x at %x\n",value,address);
+    printf("-----------------------------------------push %x at %x\n",value,address);
 }
 
 uint32_t pop32(Emulator* emu)
@@ -133,7 +133,7 @@ uint32_t pop32(Emulator* emu)
     uint32_t address = get_register32(emu, ESP);
     uint32_t ret = get_memory32(emu, address);
     set_register32(emu, ESP, address + 4);//esp+=4
-    printf("-------------------------------------pop %x from %x\n",ret,address);
+    printf("------------------------------------------pop %x from %x\n",ret,address);
 
 
     return ret;
@@ -328,5 +328,5 @@ void update_eflags_shr(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result){
     set_carry(emu, result >> 32);
     set_zero(emu, result == 0);
     set_sign(emu, signr);
-    set_overflow(emu, v1>>31);//もとoperandの最上位
+    set_overflow(emu, (v1>>31)&1);//もとoperandの最上位
 }

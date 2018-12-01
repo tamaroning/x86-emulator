@@ -156,6 +156,7 @@ static void push_imm32(Emulator* emu){
 }
 
 static void push_imm8(Emulator* emu){
+    if(opsiz)error(emu);
     uint8_t value = get_code8(emu, 1);
     push32(emu, value);
     emu->eip += 2;
@@ -453,19 +454,19 @@ static void near_jump(Emulator* emu)
 }
 
 static void cmp_al_imm8(Emulator* emu){
-    uint8_t value = get_code8(emu, 1);
+    uint8_t imm8 = get_code8(emu, 1);
     uint8_t al = get_register8(emu, AL);
-    uint16_t result = (uint16_t)al - (uint16_t)value;
-    update_eflags_sub8(emu, al, value, result);
+    uint16_t result = (uint16_t)al - (uint16_t)imm8;
+    update_eflags_sub8(emu, al, imm8, result);
     emu->eip += 2;
 }
 
 static void cmp_eax_imm32(Emulator* emu){
     if(opsiz)error(emu);
-    uint32_t value = get_code32(emu, 1);
+    uint32_t imm32 = get_code32(emu, 1);
     uint32_t eax = get_register32(emu, EAX);
-    uint64_t result = (uint64_t)eax - (uint64_t)value;
-    update_eflags_sub(emu, eax, value, result);
+    uint64_t result = (uint64_t)eax - (uint64_t)imm32;
+    update_eflags_sub(emu, eax, imm32, result);
     emu->eip += 5;
 }
 
@@ -580,12 +581,8 @@ static void swi(Emulator* emu)
     }
 }
 
-//new
-//lea
-//第2オペランド（読み込み元）の実効アドレスを計算し、第1オペランド（格納先）に格納
 static void lea_r32_m(Emulator* emu){
     if(opsiz)error(emu);
-    //printf("ebp:%08x\n",emu->registers[EBP]);
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
@@ -780,7 +777,7 @@ static void code_C1(Emulator* emu){
 
 }
 
-static void code_66(Emulator* emu){
+static void opsize(Emulator* emu){
     opsiz=2;
     emu->eip++;
 }
@@ -825,7 +822,7 @@ void init_instructions(void){
     for (i = 0; i < 8; i++) {
         instructions[0x58 + i] = pop_r32;
     }
-    instructions[0x66] = code_66;
+    instructions[0x66] = opsize;
     instructions[0x68] = push_imm32;
     instructions[0x6A] = push_imm8;
     //instructions[0x6B] = imul_r32_rm32_imm8;
