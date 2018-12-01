@@ -11,14 +11,15 @@ void parse_sib(Emulator* emu, ModRM* modrm){
     //assert(emu != NULL && modrm->sib != NULL);//true確認
     memset(&modrm->sib, 0, sizeof(SIB));//全部を0に初期化
 
-    //printf(" sib:%2X ",modrm->sib_byte);
-
     modrm->sib.scale = ((modrm->sib_byte & 0xc0) >> 6);
     modrm->sib.reg_index = ((modrm->sib_byte & 0x38) >> 3);//==ESPなら使わない
     modrm->sib.base = modrm->sib_byte & 0x7;
 
     modrm->sib.scale = 1 << modrm->sib.scale;//scale=1,2,4,8
     //modrm->sib.base_addr = get_register32(emu,modrm->sib.base_addr); 
+
+    printf("sib:%X scale:%d reg:%d base:%d\n",modrm->sib_byte,modrm->sib.scale,modrm->sib.reg_index,modrm->sib.base);
+
 
     emu->eip++;
 }
@@ -34,7 +35,7 @@ uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp){
         return get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale + disp;
     }else{
         //if(modrm.mod==0)return disp;
-        return get_register32(emu,EBP) + disp;
+        return get_register32(emu,sib->base) + disp;
     }
 
 }
@@ -121,7 +122,7 @@ void set_rm8(Emulator* emu, ModRM* modrm, uint8_t value)
     }
 }
 
-void set_rm16(Emulator* emu, ModRM* modrm, uint8_t value)
+void set_rm16(Emulator* emu, ModRM* modrm, uint16_t value)
 {
     if (modrm->mod == 3) {
         set_register16(emu, modrm->rm, value);
@@ -177,7 +178,7 @@ void set_r8(Emulator* emu, ModRM* modrm, uint8_t value)
     set_register8(emu, modrm->reg_index, value);
 }
 
-void set_r16(Emulator* emu, ModRM* modrm, uint8_t value)
+void set_r16(Emulator* emu, ModRM* modrm, uint16_t value)
 {
     set_register16(emu, modrm->reg_index, value);
 }

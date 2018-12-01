@@ -20,6 +20,9 @@ typedef struct {
     uint32_t eip;
 
 	uint32_t segBase[8], seg[8];  // CS, DS, SS, ES, FG, GS, TR, LDTR
+
+    uint32_t eipstack[10000];
+    uint32_t stackcnt;
 } Emulator;
 
 int opsiz;

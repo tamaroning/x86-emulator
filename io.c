@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "emulator.h"
 
-//値かきこみ
+//値しゅとく
 uint8_t io_in8(uint16_t address)
 {
     switch (address) {
@@ -15,7 +15,7 @@ uint8_t io_in8(uint16_t address)
     }
 }
 
-//値取得
+//値かきこみ
 void io_out8(uint16_t address, uint8_t value)
 {
     switch (address) {

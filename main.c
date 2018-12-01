@@ -47,16 +47,6 @@ static void read_binary(Emulator* emu, const char* filename, int haribote)
     fclose(binary);
 }
 
-//レジスタ表示
-static void dump_registers(Emulator* emu)
-{
-    int i;
-    for (i = 0; i < REGISTERS_COUNT; i++) {
-        printf("%s = %08x\n", registers_name[i], get_register32(emu, i));
-    }
-    printf("EIP = %08x\n", emu->eip);
-}
-
 //emu作成
 static Emulator* create_emu(size_t size, uint32_t eip, uint32_t esp)
 {
@@ -73,6 +63,11 @@ static Emulator* create_emu(size_t size, uint32_t eip, uint32_t esp)
 
     memset(emu->segBase, 0, sizeof(emu->segBase));
     memset(emu->seg, 0, sizeof(emu->seg));
+
+    //
+    emu->stackcnt=0;
+    memset(emu->eipstack, 0, sizeof(emu->eipstack));
+    //
 
     return emu;
 }
@@ -97,9 +92,34 @@ int opt_remove_at(int argc, char* argv[], int index)
     }
 }
 
+//レジスタ表示
+static void dump_registers(Emulator* emu)
+{
+    int i;
+    for (i = 0; i < REGISTERS_COUNT; i++) {
+        printf("%s = %08x\n", registers_name[i], get_register32(emu, i));
+    }
+    printf("EIP = %08x\n", emu->eip);
+}
+
 void dump_bin(Emulator* emu){
-    printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -1), get_code8(emu, -1));
+    printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -2), get_code8(emu, -1));
     printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
+}
+
+void dump_mem(Emulator* emu,uint32_t addr){
+    printf("\n[%02X %02X %02X %02X]\n", emu->memory[addr-4],emu->memory[addr-3],emu->memory[addr-2],emu->memory[addr-1]);
+    printf("[%02X %02X %02X %02X]\n\n", emu->memory[addr],emu->memory[addr+1],emu->memory[addr+2],emu->memory[addr+3]);
+}
+
+void dump_eipstack(Emulator* emu){
+    printf("\nstackcnt=%d\n",emu->stackcnt);
+    puts("--------");
+    int i;
+    for(i=0;i<emu->stackcnt;i++){
+        printf(" -%08X\n",emu->eipstack[i]);
+    }
+    puts("--------");
 }
 
 int main(int argc, char* argv[])
@@ -152,12 +172,14 @@ int main(int argc, char* argv[])
 			dump_bin(emu);
             break;
         }
-        //if(i==80)exit(0),dump_bin(emu);//デバッグ用
+        
+        if(i==100)break;
 
         //命令実行
         instructions[code](emu);
-        
+
         if(opsiz!=0)opsiz--;
+
 
         /* EIPが0になったらプログラム終了 */
         if (emu->eip == 0) {
@@ -167,7 +189,11 @@ int main(int argc, char* argv[])
     }
     puts("\n\nend of the program.\n\n");
 
+    dump_bin(emu);
     dump_registers(emu);
+    dump_mem(emu,0x30fb9c);
+    dump_eipstack(emu);
+
     destroy_emu(emu);
     return 0;
 }

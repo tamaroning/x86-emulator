@@ -70,6 +70,7 @@ void set_register32(Emulator* emu, int index, uint32_t value)
 
 void set_memory8(Emulator* emu, uint32_t address, uint32_t value)
 {
+    //if(0x30fb9c+2==address && value==0xaf)printf("yeah"),exit(0);
     emu->memory[address] = value & 0xFF;
 }
 
@@ -125,7 +126,10 @@ void push32(Emulator* emu, uint32_t value)
     int32_t address = get_register32(emu, ESP) - 4;//esp-=4
     set_register32(emu, ESP, address);
     set_memory32(emu, address, value);
+    
     printf("-----------------------------------------push %x at %x\n",value,address);
+    
+    //if(value==0xaf)exit(1);
 }
 
 uint32_t pop32(Emulator* emu)

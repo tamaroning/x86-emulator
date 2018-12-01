@@ -87,8 +87,8 @@ void set_r8(Emulator* emu, ModRM* modrm, uint8_t value);
 
 //16bit ver
 uint16_t get_rm16(Emulator* emu, ModRM* modrm);
-void set_rm16(Emulator* emu, ModRM* modrm, uint8_t value);
+void set_rm16(Emulator* emu, ModRM* modrm, uint16_t value);
 uint16_t get_r16(Emulator* emu, ModRM* modrm);
-void set_r16(Emulator* emu, ModRM* modrm, uint8_t value);
+void set_r16(Emulator* emu, ModRM* modrm, uint16_t value);
 
 #endif
