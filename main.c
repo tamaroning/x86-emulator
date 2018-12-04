@@ -117,7 +117,7 @@ void dump_eipstack(Emulator* emu){
     puts("--------");
     int i;
     for(i=0;i<emu->stackcnt;i++){
-        printf(" -%08X\n",emu->eipstack[i]);
+        printf(" %08X\n",emu->eipstack[i]);
     }
     puts("--------");
 }
@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
             break;
         }
         
-        if(i==100)break;
+        //if(i==180)puts("chuudan sitayo");break;
 
         //命令実行
         instructions[code](emu);

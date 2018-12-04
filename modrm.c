@@ -11,9 +11,9 @@ void parse_sib(Emulator* emu, ModRM* modrm){
     //assert(emu != NULL && modrm->sib != NULL);//true確認
     memset(&modrm->sib, 0, sizeof(SIB));//全部を0に初期化
 
-    modrm->sib.scale = ((modrm->sib_byte & 0xc0) >> 6);
-    modrm->sib.reg_index = ((modrm->sib_byte & 0x38) >> 3);//==ESPなら使わない
-    modrm->sib.base = modrm->sib_byte & 0x7;
+    modrm->sib.scale = ((modrm->sib_byte >> 6) & 3);
+    modrm->sib.reg_index = ((modrm->sib_byte >> 3) & 7);//==ESPなら使わない
+    modrm->sib.base = modrm->sib_byte & 7;
 
     modrm->sib.scale = 1 << modrm->sib.scale;//scale=1,2,4,8
     //modrm->sib.base_addr = get_register32(emu,modrm->sib.base_addr); 
@@ -35,20 +35,18 @@ uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp){
         return get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale + disp;
     }else{
         //if(modrm.mod==0)return disp;
-        return get_register32(emu,sib->base) + disp;
+        return get_register32(emu,sib->reg_index) + disp;
     }
 
 }
 
 void parse_modrm(Emulator* emu, ModRM* modrm)//eipがmodR/Mの先頭
 {
-    uint8_t code;
-
     assert(emu != NULL && modrm != NULL);//true確認
 
     memset(modrm, 0, sizeof(ModRM));//全部を0に初期化
 
-    code = get_code8(emu, 0);//全体取得
+    uint8_t code = get_code8(emu, 0);//全体取得
     modrm->mod = ((code & 0xC0) >> 6);
     modrm->nnn = ((code & 0x38) >> 3);
     modrm->rm = code & 0x07;
@@ -185,8 +183,7 @@ void set_r16(Emulator* emu, ModRM* modrm, uint16_t value)
 
 void set_r32(Emulator* emu, ModRM* modrm, uint32_t value)
 {
-    /*if(opsiz)set_register16(emu, modrm->reg_index, (uint16_t)value);
-    else */set_register32(emu, modrm->reg_index, value);
+    set_register32(emu, modrm->reg_index, value);
 }
 
 uint8_t get_r8(Emulator* emu, ModRM* modrm)
@@ -200,8 +197,6 @@ uint16_t get_r16(Emulator* emu, ModRM* modrm)
 }
 
 
-uint32_t get_r32(Emulator* emu, ModRM* modrm)
-{
-    //if(opsiz)return (uint16_t)get_register16(emu, modrm->reg_index);
+uint32_t get_r32(Emulator* emu, ModRM* modrm){
     return get_register32(emu, modrm->reg_index);
 }

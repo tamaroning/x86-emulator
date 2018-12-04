@@ -87,14 +87,9 @@ void update_eflags_dec(Emulator* emu,uint32_t v1);
 void update_eflags_or_and(Emulator* emu,uint32_t result);
 
 void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
-void update_eflags_sar(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result);
-void update_eflags_shr(Emulator* emu,uint32_t v1,uint32_t v2,uint32_t result);
+void update_eflags_sar(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result);
+void update_eflags_shr(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result);
 
 
-
-/*
-void dump_mem(Emulator* emu,uint32_t addr);
-void dump_mem(Emulator* emu);
-*/
 
 #endif
