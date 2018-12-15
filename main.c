@@ -173,7 +173,10 @@ int main(int argc, char* argv[])
             break;
         }
         
-        //if(i==180)puts("chuudan sitayo");break;
+        if(i==1500){
+            puts("chuudan sitayo");
+            break;
+        }
 
         //命令実行
         instructions[code](emu);
