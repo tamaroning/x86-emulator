@@ -169,21 +169,23 @@ static void imul_r32_rm32_imm8(Emulator* emu){
     ModRM modrm;
     parse_modrm(emu,&modrm);
     if(opsiz==0){
-        uint32_t rm32;
-        int8_t imm8;
-        int32_t res;
+        uint32_t rm32=get_rm32(emu,&modrm);
+        int8_t imm8=get_sign_code8(emu,0);
+        int32_t dest;
         int64_t temp;
 
-        rm32=get_rm32(emu,&modrm);
-        imm8=get_sign_code8(emu,0);
-
-        res=rm32*imm8;
+        dest=rm32*imm8;
         temp=rm32*imm8;
         
-        set_r32(emu,&modrm,(uint32_t)res);
+        set_r32(emu,&modrm,(uint32_t)dest);
 
-        set_carry(emu,rm32*imm8>=(1<<32));
-        set_overflow(emu,temp!=res);
+        if(temp==dest){
+            set_carry(emu,0);
+            set_overflow(emu,0);
+        }else{
+            set_carry(emu,1);
+            set_overflow(emu,1);
+        }
 
     }else{
         puts("error imul");
@@ -371,16 +373,17 @@ static void code_0F(Emulator* emu){
                 exit(1);
                 break;
         }
-    }/*else if(opecode2==0xb6){
-        //movzx
+    }else if(opecode2==0xB6){
+        //movzx_r32_rm8
         ModRM modrm;
         parse_modrm(emu,&modrm);
         movzx_r32_rm8(emu,&modrm);
-    }*/else{
+    }else{
         puts("0F error not implimented opecode2");
         exit(1);
     }
 }
+
 
 //mov al,[dx]
 static void in_al_dx(Emulator* emu){
@@ -856,7 +859,7 @@ void init_instructions(void){
     instructions[0x66] = opsize;
     instructions[0x68] = push_imm32;
     instructions[0x6A] = push_imm8;
-    //instructions[0x6B] = imul_r32_rm32_imm8;
+    instructions[0x6B] = imul_r32_rm32_imm8;
 
     instructions[0x70] = jo;//overflow
     instructions[0x71] = jno;//not overflow
