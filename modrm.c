@@ -18,7 +18,7 @@ void parse_sib(Emulator* emu, ModRM* modrm){
     modrm->sib.scale = 1 << modrm->sib.scale;//scale=1,2,4,8
     //modrm->sib.base_addr = get_register32(emu,modrm->sib.base_addr); 
 
-    printf("sib:%X scale:%d reg:%d base:%d\n",modrm->sib_byte,modrm->sib.scale,modrm->sib.reg_index,modrm->sib.base);
+    //printf("sib:%X scale:%d reg:%d base:%d\n",modrm->sib_byte,modrm->sib.scale,modrm->sib.reg_index,modrm->sib.base);
 
 
     emu->eip++;

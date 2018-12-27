@@ -95,12 +95,23 @@ int opt_remove_at(int argc, char* argv[], int index)
 //レジスタ表示
 static void dump_registers(Emulator* emu)
 {
+    puts("---registers---");
     int i;
     for (i = 0; i < REGISTERS_COUNT; i++) {
         printf("%s = %08x\n", registers_name[i], get_register32(emu, i));
     }
     printf("EIP = %08x\n", emu->eip);
 }
+
+static void dump_eflags(Emulator* emu)
+{
+    puts("---eflags---");
+    printf("CF = %d\n",is_carry(emu));
+    printf("OF = %d\n",is_overflow(emu));
+    printf("SF = %d\n",is_sign(emu));
+    printf("ZF = %d\n",is_zero(emu));
+}
+
 
 void dump_bin(Emulator* emu){
     printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -2), get_code8(emu, -1));
@@ -126,13 +137,19 @@ int main(int argc, char* argv[])
 {
     Emulator* emu;
     int i;
-    int quiet = 0, haribote = 0, memsiz = MEMORY_SIZE;
+    int stepup = 0;
+    int quiet = 1, haribote = 0, memsiz = MEMORY_SIZE;
+    int backup_quiet = 0;//最初の方は表示すると遅いので無条件でquietする
 
-    //-q, -hオプション
+    //-q, -h,-sオプション
     i = 1;
     while (i < argc) {
-        if (strcmp(argv[i], "-q") == 0) {
-            quiet = 1;
+        if(strcmp(argv[i],"-s")==0){
+            stepup=1;
+            argc = opt_remove_at(argc, argv, i);
+        }else if (strcmp(argv[i], "-q") == 0) {
+            //quiet = 1;
+            backup_quiet=1;
             argc = opt_remove_at(argc, argv, i);
 		} else if (strcmp(argv[i], "-h") == 0) {
             haribote = 1;
@@ -162,8 +179,17 @@ int main(int argc, char* argv[])
         //バイナリ出力
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
-            printf("%d: EIP = %X, Code = %02X   ebp:%08X  esp:%08X \n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP]);
-            //printf("esp=%x\n",emu->registers[ESP]);
+            if(stepup==0){
+                printf("%d: EIP = %X, Code = %02X   ebp:%08X  esp:%08X \n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP]);
+            }else{
+                printf("\n\n%d: EIP = %X, Code = %02X\n",i, emu->eip,code);
+                dump_registers(emu);
+                dump_eflags(emu);
+                char a[100];
+                scanf("%s",a);
+                
+            }
+                //printf("esp=%x\n",emu->registers[ESP]);
         }
 
         if (instructions[code] == NULL) {
@@ -172,17 +198,17 @@ int main(int argc, char* argv[])
 			dump_bin(emu);
             break;
         }
-        
-        if(i==1500){
-            puts("chuudan sitayo");
-            break;
-        }
 
         //命令実行
         instructions[code](emu);
 
         if(opsiz!=0)opsiz--;
 
+        
+        uint32_t ebxx=emu->registers[EBX];
+        //dump_registers(emu);
+        if(ebxx==1)quiet=backup_quiet;
+        //if(quiet==1 && ebxx<9000 && code==0x4B){printf("%d\n",ebxx);}
 
         /* EIPが0になったらプログラム終了 */
         if (emu->eip == 0) {
@@ -194,7 +220,7 @@ int main(int argc, char* argv[])
 
     dump_bin(emu);
     dump_registers(emu);
-    dump_mem(emu,0x30fb9c);
+    //dump_mem(emu,0x30fb9c);
     dump_eipstack(emu);
 
     destroy_emu(emu);

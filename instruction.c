@@ -14,13 +14,16 @@
 
 #include "modrm.h"
 
-instruction_func_t* instructions[256];//index=opecode
+instruction_func_t* instructions[256];
 
 void error(Emulator* emu){
     printf("error see you~\n");
+    printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -2), get_code8(emu, -1));
+    printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
     exit(0);
     return;
 }
+
 
 static void mov_r8_imm8(Emulator* emu){
     if(opsiz)error(emu);
@@ -74,7 +77,6 @@ static void add_rm32_r32(Emulator* emu){
     update_eflags_add(emu,rm32,r32,rm32+r32);
 }
 
-
 static void or_rm32_r32(Emulator* emu){
     if(opsiz)error(emu);
     emu->eip += 1;
@@ -124,7 +126,6 @@ static void inc_r32(Emulator* emu){
     emu->eip += 1;
 }
 
-//new
 static void dec_r32(Emulator* emu){
     if(opsiz)error(emu);
     uint8_t reg = get_code8(emu, 0) - 0x48;
@@ -259,7 +260,6 @@ static void sub_rm32_imm32(Emulator* emu, ModRM* modrm){
     update_eflags_sub(emu, rm32, imm32, result);
 }
 
-//new
 static void and_rm32_imm8(Emulator* emu,ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t imm8= (uint32_t)get_code8(emu,0);
@@ -442,9 +442,8 @@ static void ret(Emulator* emu){
     emu->stackcnt--;
 
     if(stackeip==retaddr){
-        puts("onnnazi eip");
+        //puts("onnnazi eip");
     }
-    //
 
     emu->eip = retaddr;
 
@@ -629,8 +628,6 @@ static void popfd(Emulator* emu){
     emu->eip++;
 }
 
-
-
 static void code_80(Emulator* emu){
     emu->eip++;
     ModRM modrm;
@@ -646,7 +643,6 @@ static void code_80(Emulator* emu){
     }
 }
 
-//new
 static void code_81(Emulator* emu)
 {
     emu->eip += 1;
@@ -687,6 +683,19 @@ static void sar_rm8_imm8(Emulator* emu,ModRM* modrm){
     emu->eip++;
 }
 
+static void shr_rm8_imm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint8_t rm8,imm8,res;
+    
+    imm8=get_code8(emu,0);
+    rm8=get_rm8(emu,modrm);
+    
+    res=rm8>>imm8;
+    update_eflags_shr8(emu,rm8,imm8,res);
+
+    emu->eip++;
+}
+
 /*static void sal_rm8_imm8(Emulator* emu,ModRM* modrm){
     //if(!opsiz)error(emu);
     uint32_t rm8,imm8,res8;
@@ -718,7 +727,6 @@ static void mov_moffs32_eax(Emulator* emu){
     emu->eip+=5;
 }
 
-//new
 static void code_C0(Emulator* emu){
     emu->eip++;
     ModRM modrm;
@@ -728,13 +736,16 @@ static void code_C0(Emulator* emu){
         /*case 4://rm8をimm8だけ左シフト
             sal_rm8_imm8(emu,&modrm);
             break;*/
-        //case 5:
+        case 5:
+            shr_rm8_imm8(emu,&modrm);
+            break;
         case 7://rm8をimm8だけ右シフト
             sar_rm8_imm8(emu,&modrm);
             break;
         default:
             puts("error code:C0");
-            exit(1);
+            
+            error(emu);
             break;
     }
 }
@@ -873,8 +884,8 @@ void init_instructions(void){
     instructions[0x8B] = mov_r32_rm32;
 
     instructions[0x8D] = lea_r32_m;
-    //instructions[0x9C] = pushfd;
-    //instructions[0x9D] = popfd;
+    instructions[0x9C] = pushfd;
+    instructions[0x9D] = popfd;
     
 
     instructions[0xA0] = mov_al_moffs8;
@@ -903,8 +914,7 @@ void init_instructions(void){
     instructions[0xEC] = in_al_dx;
     instructions[0xEE] = out_dx_al;
 
-
-    //instructions[0xFA] = cli;
+    instructions[0xFA] = cli;
     instructions[0xFB] = sti;
 
     //instructions[0xFF] = code_ff;

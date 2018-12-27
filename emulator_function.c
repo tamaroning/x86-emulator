@@ -37,7 +37,7 @@ uint8_t get_register8(Emulator* emu, int index)
         return (emu->registers[index - 4] >> 8) & 0xff;
     }
 }
-//new
+
 uint16_t get_register16(Emulator* emu,int index)
 {
     return emu->registers[index] & 0xffff;
@@ -126,14 +126,14 @@ void push32(Emulator* emu, uint32_t value){
     set_register32(emu, ESP, address);
     set_memory32(emu, address, value);
     
-    printf("-----------------------------------------push %x at %x\n",value,address);
+    //printf("-----------------------------------------push %x at %x\n",value,address);
 }
 
 uint32_t pop32(Emulator* emu){
     uint32_t address = get_register32(emu, ESP);
     uint32_t ret = get_memory32(emu, address);
     set_register32(emu, ESP, address + 4);//esp+=4
-    printf("------------------------------------------pop %x from %x\n",ret,address);
+    //printf("------------------------------------------pop %x from %x\n",ret,address);
     return ret;
 }
 
@@ -281,8 +281,9 @@ void update_eflags_dec(Emulator* emu,uint32_t v1){
     set_overflow(emu, result>>32);
 }
 
+//or and xor 
 void update_eflags_or_and(Emulator* emu,uint32_t result){
-    int signr = result >> 31;
+    int signr = (result >> 31)&1;
 
     set_carry(emu, 0);
     set_zero(emu, result == 0);
@@ -293,7 +294,7 @@ void update_eflags_or_and(Emulator* emu,uint32_t result){
 void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result){
     //int sign1 = v1 >> 7;
     //int sign2 = v2 >> 7;
-    int signr = result >> 7;
+    int signr = (result >> 7)&1;
 
     set_carry(emu, (v1>>(v2-1))&1);
     set_zero(emu, result == 0);
@@ -302,23 +303,34 @@ void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result){
     if(v2==1)set_overflow(emu,0);
 }
 
+void update_eflags_shr8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result){
+    int sign1 = (v1 >> 7)&1;
+    //int sign2 = v2 >> 7;
+    int signr = (result >> 7)&1;
+
+    set_carry(emu,  (v1>>(v2-1))&1);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, sign1);//もとoperandの最上位
+}
 
 void update_eflags_sar(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result){
     //int sign1 = v1 >> 31;
     //int sign2 = v2 >> 31;
-    int signr = result >> 31;
+    int signr = (result >> 31)&1;
 
     set_carry(emu, (v1>>(v2-1))&1);
     set_zero(emu, result == 0);
     set_sign(emu, signr);
     //set_overflow(emu, result>>32);
     if(v2==1)set_overflow(emu,0);
+    
 }
 
 void update_eflags_shr(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result){
-    int sign1 = v1 >> 31;
+    int sign1 = (v1 >> 31)&1;
     //int sign2 = v2 >> 31;
-    int signr = result >> 31;
+    int signr = (result >> 31)&1;
 
     set_carry(emu,  (v1>>(v2-1))&1);
     set_zero(emu, result == 0);
