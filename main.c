@@ -210,6 +210,10 @@ int main(int argc, char* argv[])
         if(ebxx==1)quiet=backup_quiet;
         //if(quiet==1 && ebxx<9000 && code==0x4B){printf("%d\n",ebxx);}
 
+
+        if(i<305900)quiet=1;
+        else quiet=backup_quiet;
+
         /* EIPが0になったらプログラム終了 */
         if (emu->eip == 0) {
             printf("\n\nend of program.(eip=0)\n\n");

@@ -233,13 +233,15 @@ static void cmp_rm8_imm8(Emulator* emu,ModRM* modrm){
     emu->eip++;
 }
 
+//last
 static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
     uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
-    emu->eip += 1;
     uint64_t result = (uint64_t)rm32 - (uint64_t)imm8;
     update_eflags_sub(emu, rm32, imm8, result);
+
+    emu->eip++;
 }
 
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm){
@@ -288,9 +290,9 @@ static void code_83(Emulator* emu){
     /*case 5:
         sub_rm32_imm8(emu, &modrm);
         break;*/
-    /*case 7:
+    case 7:
         cmp_rm32_imm8(emu, &modrm);
-        break;*/
+        break;
     default:
         printf("not implemented: 83 /%d\n", modrm.nnn);
         exit(1);
@@ -378,8 +380,13 @@ static void code_0F(Emulator* emu){
         ModRM modrm;
         parse_modrm(emu,&modrm);
         movzx_r32_rm8(emu,&modrm);
+    }else if(opecode2==0xBF){//last
+        //MOVSX reg32,r/m16
+
+    }
     }else{
         puts("0F error not implimented opecode2");
+        error(emu);
         exit(1);
     }
 }
@@ -402,6 +409,7 @@ static void out_dx_al(Emulator* emu){
     emu->eip += 1;
 }
 
+//last
 static void inc_rm32(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
@@ -519,6 +527,8 @@ static void cmp_rm32_imm32(Emulator* emu,ModRM* modrm){
     update_eflags_sub(emu,rm32,imm32,result);
     emu->eip+=4;
 }
+
+
 
 #define DEFINE_JX(flag, is_flag) \
 static void j ## flag(Emulator* emu) \
@@ -920,6 +930,6 @@ void init_instructions(void){
     instructions[0xFA] = cli;
     instructions[0xFB] = sti;
 
-    //instructions[0xFF] = code_ff;
+    instructions[0xFF] = code_ff;
 }
 
