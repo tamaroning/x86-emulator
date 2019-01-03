@@ -137,6 +137,8 @@ uint32_t pop32(Emulator* emu){
     return ret;
 }
 
+
+
 void set_carry(Emulator* emu, int is_carry)
 {
     if (is_carry) {
@@ -251,6 +253,29 @@ void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result)
     set_overflow(emu, sign1 != sign2 && sign1 != signr);
 }
 
+void update_eflags_add8(Emulator* emu,uint8_t v1,uint8_t v2,uint16_t result){
+    //int sign1 = v1 >> 31;
+    //int sign2 = v2 >> 31;
+    int signr = (result >> 7) & 1;
+
+    set_carry(emu, result >> 8);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>8);
+}
+
+/*
+void update_eflags_add16(Emulator* emu,uint16_t v1,uint16_t v2,uint32_t result){
+    //int sign1 = v1 >> 31;
+    //int sign2 = v2 >> 31;
+    int signr = (result >> 15) & 1;
+
+    set_carry(emu, result >> 16);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, result>>16);
+}*/
+
 void update_eflags_add(Emulator* emu,uint32_t v1,uint32_t v2,uint64_t result){
     //int sign1 = v1 >> 31;
     //int sign2 = v2 >> 31;
@@ -336,4 +361,21 @@ void update_eflags_shr(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result){
     set_zero(emu, result == 0);
     set_sign(emu, signr);
     set_overflow(emu, sign1);//もとoperandの最上位
+}
+
+//last
+void update_eflags_imul_2or3(Emulator* emu,uint32_t v1,int32_t v2){
+    int32_t dest;
+    int64_t temp;
+
+    dest=v1*v2;
+    temp=v1*v2;
+
+    if(temp==dest){
+        set_carry(emu,0);
+        set_overflow(emu,0);
+    }else{
+        set_carry(emu,1);
+        set_overflow(emu,1);
+    }
 }

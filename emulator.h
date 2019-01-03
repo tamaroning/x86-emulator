@@ -27,4 +27,6 @@ typedef struct {
 
 int opsiz;
 
+//int locksig;
+
 #endif

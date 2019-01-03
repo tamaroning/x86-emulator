@@ -79,6 +79,8 @@ int32_t is_interrupt(Emulator* emu);
 void update_eflags_sub8(Emulator* emu, uint8_t v1, uint8_t v2, uint16_t result);
 void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
 
+void update_eflags_add8(Emulator* emu,uint8_t v1,uint8_t v2,uint16_t result);
+//void update_eflags_add16(Emulator* emu,uint16_t v1,uint16_t v2,uint32_t result);
 void update_eflags_add(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
 
 void update_eflags_inc(Emulator* emu,uint32_t v1);
@@ -90,7 +92,7 @@ void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
 void update_eflags_shr8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
 void update_eflags_sar(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result);
 void update_eflags_shr(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result);
-
+void update_eflags_imul_2or3(Emulator* emu,uint32_t v1,int32_t v2);
 
 
 #endif

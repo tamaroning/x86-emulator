@@ -103,8 +103,10 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
             return get_register32(emu, modrm->rm) + modrm->disp32;
         }
     } else {
-        
-        printf("not implemented ModRM mod = 3\n");
+        //last
+        return get_register32(emu,modrm->rm);
+        //printf("not implemented ModRM mod = 3\n");
+        error(emu);
         exit(0);
     }
 }

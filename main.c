@@ -69,6 +69,9 @@ static Emulator* create_emu(size_t size, uint32_t eip, uint32_t esp)
     memset(emu->eipstack, 0, sizeof(emu->eipstack));
     //
 
+    opsiz=0;
+
+
     return emu;
 }
 
@@ -191,6 +194,7 @@ int main(int argc, char* argv[])
             }
                 //printf("esp=%x\n",emu->registers[ESP]);
         }
+        
 
         if (instructions[code] == NULL) {
             //opecode未実装
@@ -199,19 +203,23 @@ int main(int argc, char* argv[])
             break;
         }
 
+        if(i==789246)dump_bin(emu);
+
         //命令実行
         instructions[code](emu);
 
         if(opsiz!=0)opsiz--;
 
-        
+        //デバッグの時間短縮のために文字出力おふる
         uint32_t ebxx=emu->registers[EBX];
         //dump_registers(emu);
         if(ebxx==1)quiet=backup_quiet;
         //if(quiet==1 && ebxx<9000 && code==0x4B){printf("%d\n",ebxx);}
 
 
-        if(i<305900)quiet=1;
+        if(i<400390)quiet=1;
+        if(i<752980)quiet=1;
+        if(i<789200)quiet=1;
         else quiet=backup_quiet;
 
         /* EIPが0になったらプログラム終了 */
