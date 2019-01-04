@@ -87,6 +87,7 @@ void update_eflags_inc(Emulator* emu,uint32_t v1);
 void update_eflags_dec(Emulator* emu,uint32_t v1);
 
 void update_eflags_or_and(Emulator* emu,uint32_t result);
+void update_eflags_or_and8(Emulator* emu,uint8_t result);
 
 void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
 void update_eflags_shr8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);

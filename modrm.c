@@ -25,17 +25,18 @@ void parse_sib(Emulator* emu, ModRM* modrm){
 }
 
 //eipがsibの次バイトをさすようにする
-uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp){
+uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib){
     
     //[base+index*n+disp]
     //index=espのときはつかわない
 
     //printf("%2X",emu->memory[emu->eip]);
     if(sib->base != ESP){
-        return get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale + disp;
+        //printf("sib :::: %x",get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale);
+        return get_register32(emu,sib->base) + get_register32(emu,sib->reg_index) * sib->scale;
     }else{
         //if(modrm.mod==0)return disp;
-        return get_register32(emu,sib->reg_index) + disp;
+        return get_register32(emu,sib->reg_index);
     }
 
 }
@@ -76,7 +77,7 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     if (modrm->mod == 0) {
         if (modrm->rm == 4) {
             //[--][--]
-            return sib_calc_mem_addr(emu, &(modrm->sib), 0);
+            return sib_calc_mem_addr(emu, &(modrm->sib));
             //printf("not implemented ModRM mod = 0, rm = 4\n");
             //exit(0);
         } else if (modrm->rm == 5) {
@@ -87,7 +88,7 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     } else if (modrm->mod == 1) {
         if (modrm->rm == 4) {
             //[--][--]+disp8
-            return sib_calc_mem_addr(emu, &(modrm->sib), (uint32_t)(modrm->disp8));
+            return sib_calc_mem_addr(emu, &(modrm->sib))+ modrm->disp8;
             //printf("not implemented ModRM mod = 1, rm = 4\n");
             //exit(0);
         } else {
@@ -96,13 +97,13 @@ uint32_t calc_memory_address(Emulator* emu, ModRM* modrm)
     } else if (modrm->mod == 2) {
         if (modrm->rm == 4) {
             //[--][--]+disp32
-            return sib_calc_mem_addr(emu, &(modrm->sib), modrm->disp32);
+            return sib_calc_mem_addr(emu, &(modrm->sib)) + modrm->disp32;
             //printf("not implemented ModRM mod = 2, rm = 4\n");
             //exit(0);
         } else {
             return get_register32(emu, modrm->rm) + modrm->disp32;
         }
-    } else {
+    } else {//mod==3
         //last
         return get_register32(emu,modrm->rm);
         //printf("not implemented ModRM mod = 3\n");

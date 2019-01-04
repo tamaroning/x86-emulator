@@ -316,6 +316,15 @@ void update_eflags_or_and(Emulator* emu,uint32_t result){
     set_overflow(emu, 0);
 }
 
+void update_eflags_or_and8(Emulator* emu,uint8_t result){
+    int signr = (result >> 7)&1;
+
+    set_carry(emu, 0);
+    set_zero(emu, result == 0);
+    set_sign(emu, signr);
+    set_overflow(emu, 0);
+}
+
 void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result){
     //int sign1 = v1 >> 7;
     //int sign2 = v2 >> 7;

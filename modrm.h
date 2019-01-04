@@ -55,7 +55,7 @@ void parse_modrm(Emulator* emu, ModRM* modrm);
  */
 uint32_t calc_memory_address(Emulator* emu, ModRM* modrm);
 
-uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib, uint32_t disp);
+uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib);
 
 
 

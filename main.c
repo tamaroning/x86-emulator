@@ -8,9 +8,11 @@
 #include "instruction.h"
 
 //1024MB
-#define MEMORY_SIZE (1024 * 1024 * 1024)
+#define MEMORY_SIZE (1024 * 1024 )
 
 char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
+
+int i;//命令の実行回数
 
 //emuのメモリに512byteコピー
 static void read_binary(Emulator* emu, const char* filename, int haribote)
@@ -117,6 +119,7 @@ static void dump_eflags(Emulator* emu)
 
 
 void dump_bin(Emulator* emu){
+    printf("\ni=%d\n",i);
     printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -2), get_code8(emu, -1));
     printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
 }
@@ -139,7 +142,6 @@ void dump_eipstack(Emulator* emu){
 int main(int argc, char* argv[])
 {
     Emulator* emu;
-    int i;
     int stepup = 0;
     int quiet = 1, haribote = 0, memsiz = MEMORY_SIZE;
     int backup_quiet = 0;//最初の方は表示すると遅いので無条件でquietする
@@ -176,13 +178,13 @@ int main(int argc, char* argv[])
 
     read_binary(emu, argv[1], haribote);
     i=0;
-    while (emu->eip < memsiz) {
+    while (emu->eip < memsiz ||1) {
         i++;
         uint8_t code = get_code8(emu, 0);
-        //バイナリ出力
+
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
-            if(stepup==0){
+            if(!stepup){
                 printf("%d: EIP = %X, Code = %02X   ebp:%08X  esp:%08X \n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP]);
             }else{
                 printf("\n\n%d: EIP = %X, Code = %02X\n",i, emu->eip,code);
@@ -203,7 +205,7 @@ int main(int argc, char* argv[])
             break;
         }
 
-        if(i==789246)dump_bin(emu);
+        //if(i==752992)dump_registers(emu),dump_bin(emu);
 
         //命令実行
         instructions[code](emu);
@@ -211,9 +213,9 @@ int main(int argc, char* argv[])
         if(opsiz!=0)opsiz--;
 
         //デバッグの時間短縮のために文字出力おふる
-        uint32_t ebxx=emu->registers[EBX];
+        //uint32_t ebxx=emu->registers[EBX];
         //dump_registers(emu);
-        if(ebxx==1)quiet=backup_quiet;
+        //if(ebxx==1)quiet=backup_quiet;
         //if(quiet==1 && ebxx<9000 && code==0x4B){printf("%d\n",ebxx);}
 
 
@@ -228,7 +230,8 @@ int main(int argc, char* argv[])
             break;
         }
     }
-    puts("\n\nend of the program.\n\n");
+
+    puts("\n\nend of loop.\n\n");
 
     dump_bin(emu);
     dump_registers(emu);

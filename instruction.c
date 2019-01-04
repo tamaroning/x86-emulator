@@ -121,6 +121,21 @@ static void add_r32_rm32(Emulator* emu){
     update_eflags_add(emu,r32,rm32,r32+rm32);
 }
 
+//last
+static void or_rm8_r8(Emulator* emu){
+    if(opsiz)error(emu);
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    uint8_t rm8,r8,res;
+    rm8=get_rm8(emu,&modrm);
+    r8=get_r8(emu,&modrm);
+    res = rm8 | r8;
+    set_rm8(emu,&modrm,res);
+
+    update_eflags_or_and8(emu,res);
+}
+
 static void or_rm32_r32(Emulator* emu){
     if(opsiz)error(emu);
     emu->eip += 1;
@@ -422,6 +437,19 @@ static void code_83(Emulator* emu){
         exit(1);
     }
 }
+//last
+static void test_rm8_r8(Emulator* emu){
+    if(opsiz)error(emu);
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    uint8_t rm8,r8,res;
+    rm8=get_rm8(emu,&modrm);
+    r8=get_r8(emu,&modrm);
+    res = rm8 & r8;
+
+    update_eflags_or_and8(emu,res);
+}
 
 //andをやってeflags更新して結果すてる
 static void test_rm32_r32(Emulator* emu){
@@ -462,8 +490,16 @@ static void mov_rm32_imm32(Emulator* emu){
 static void je(Emulator* emu)//jump if less
 {
     //CF==0 and ZF==0
-    int diff = (is_zero(emu)) ? get_sign_code8(emu, 1) : 0;
-    emu->eip += (diff + 2);
+    int diff = (is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
+    emu->eip += (diff + 4);
+}
+
+//last
+static void jne(Emulator* emu)//jump if less
+{
+    //CF==0 and ZF==0
+    int diff = (!is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
+    emu->eip += (diff + 4);
 }
 
 
@@ -543,7 +579,9 @@ static void code_0F(Emulator* emu){
     }else if(opecode2==0x84){
         //JE JZ
         je(emu);
-
+    }else if(opecode2==0x85){
+        //JE JZ
+        jne(emu);
     }else if(opecode2==0xAF){
         ModRM modrm;
         parse_modrm(emu,&modrm);
@@ -616,8 +654,6 @@ static void code_FF(Emulator* emu){
     emu->eip += 1;
     ModRM modrm;
     parse_modrm(emu, &modrm);
-
-    dump(emu);
 
     switch (modrm.nnn) {
         case 0:
@@ -945,8 +981,8 @@ static void mov_al_moffs8(Emulator* emu){
 //last
 static void mov_eax_moffs32(Emulator* emu){
     if(opsiz)error(emu);
-    uint32_t imm32=get_code32(emu,1);
-    set_register32(emu,EAX,imm32);
+    uint32_t addr=get_code32(emu,1);
+    set_register32(emu,EAX,get_memory32(emu,addr));
 
     emu->eip+=5;
 }
@@ -1013,13 +1049,36 @@ static void sar_rm32_imm8(Emulator* emu,ModRM* modrm){
     emu->eip++;
 }
 
+static void sal_rm32_imm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t rm32,imm8,res;
+    rm32=get_rm32(emu,modrm);
+    imm8=get_code8(emu,0);
+
+    res=rm32<<imm8;
+
+    set_rm32(emu,modrm,res);
+
+    int8_t sign=(res>>(32-imm8))&1;
+    set_carry(emu,sign);//格納先の最高位
+
+    if(imm8==1){
+        uint8_t top2bit=(res>>30)&3;
+        if(top2bit==0 || top2bit==3)set_overflow(emu,0);
+        else  set_overflow(emu,1);
+    }
+
+    emu->eip++;
+}
+
 static void code_C1(Emulator* emu){
     //uint64_t rm8,imm8,res8;
     emu->eip++;
     ModRM modrm;
     parse_modrm(emu,&modrm);
     switch(modrm.nnn){
-        //case 4://shl rm32 imm8
+        case 4://shl rm32 imm8
+            sal_rm32_imm8(emu,&modrm);
             //break;
 
         //rm32を2でimm8回符号なし除算します
@@ -1031,11 +1090,37 @@ static void code_C1(Emulator* emu){
             break;
         default:
             printf("error code:C1/%d\n",modrm.nnn);
+            error(emu);
             exit(1);
             break;
     }
 
 }
+
+//last
+static void not_rm8(Emulator* emu,ModRM* modrm){
+    uint8_t rm8=get_rm8(emu,modrm);
+    set_rm8(emu,modrm,~rm8);
+}
+
+//last
+static void code_F6(Emulator* emu){
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    switch(modrm.nnn){
+        case 2://not rm8
+            not_rm8(emu,&modrm);
+            break;
+        default:
+            printf("error code:F6/%d\n",modrm.nnn);
+            error(emu);
+            exit(1);
+            break;
+    }
+
+}
+
 
 static void opsize(Emulator* emu){
     opsiz=2;
@@ -1061,7 +1146,7 @@ void init_instructions(void){
     instructions[0x03] = add_r32_rm32;
 
     instructions[0x05] = add_eax_imm32;
-    
+    instructions[0x08] = or_rm8_r8;
     instructions[0x09] = or_rm32_r32;
     instructions[0x0F] = code_0F;
 
@@ -1120,6 +1205,7 @@ void init_instructions(void){
     instructions[0x81] = code_81;
 
     instructions[0x83] = code_83;
+    instructions[0x84] = test_rm8_r8;
     instructions[0x85] = test_rm32_r32;
     instructions[0x88] = mov_rm8_r8;
     instructions[0x89] = mov_rm32_r32;
@@ -1158,6 +1244,7 @@ void init_instructions(void){
     instructions[0xEC] = in_al_dx;
     instructions[0xEE] = out_dx_al;
 
+    instructions[0xF6] = code_F6;
     instructions[0xFA] = cli;
     instructions[0xFB] = sti;
 
