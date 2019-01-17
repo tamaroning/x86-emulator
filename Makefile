@@ -13,4 +13,4 @@ all :
 	$(CC) $(CFLAGS) -c $<
 
 $(TARGET) : $(OBJS) Makefile
-	$(CC) -o $@ $(OBJS)
+	$(CC) -o $@ $(OBJS) -lfreeglut -lglu32 -lopengl32

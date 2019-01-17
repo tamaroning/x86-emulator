@@ -1,15 +1,25 @@
-#include<stdio.h>
-#include<stdint.h>
+#include <GL/glut.h>
 
+void display () {
+  glClear (GL_COLOR_BUFFER_BIT);
+  glBegin (GL_LINE_LOOP);
+  glVertex2d (-0.9, -0.9);
+  glVertex2d (0.9, -0.9);
+  glVertex2d (0, 0.9);
+  glEnd ();
+  glFlush ();
+}
 
-int main(){
+void init () {
+  glClearColor (0.0, 1.0, 0.0, 1.0);
+}
 
-    uint8_t us=128;//1000 0000b
-    int8_t s=-128;//1000 0000b
-
-    uint8_t cnt=3;
-
-    printf("unsigned  0x%x >> %d = 0x%X\n",us,cnt,(uint8_t)(us>>cnt));
-    printf("  signed  0x%x >> %d = 0x%X",(uint8_t)s,cnt,(uint8_t)(s>>cnt));
-    
+int main (int argc, char *argv[]) {
+  glutInit (&argc, argv);
+  glutInitDisplayMode (GLUT_RGBA);
+  glutCreateWindow (argv[0]);
+  glutDisplayFunc (display);
+  init ();
+  glutMainLoop ();
+  return 0;
 }

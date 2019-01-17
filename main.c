@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <GL/freeglut.h>
 
 #include "emulator.h"
 #include "emulator_function.h"
@@ -139,6 +140,20 @@ void dump_eipstack(Emulator* emu){
     puts("--------");
 }
 
+void display () {
+  glClear (GL_COLOR_BUFFER_BIT);
+  glBegin (GL_LINE_LOOP);
+
+  /*
+  glVertex2d (-0.9, -0.9);
+  glVertex2d (0.9, -0.9);
+  glVertex2d (0, 0.9);*/
+
+
+  glEnd ();
+  glFlush ();
+}
+
 int main(int argc, char* argv[])
 {
     Emulator* emu;
@@ -160,6 +175,13 @@ int main(int argc, char* argv[])
             haribote = 1;
             argc = opt_remove_at(argc, argv, i);
 			memsiz = 32 * 1024 * 1024;
+
+            //create window
+            glutInit (&argc, argv);
+            //glutInitDisplayMode (GLUT_RGBA);
+            glutCreateWindow ("x86 Emulator");
+            glutDisplayFunc (display);
+
         } else {
             i++;
         }
@@ -197,6 +219,10 @@ int main(int argc, char* argv[])
                 //printf("esp=%x\n",emu->registers[ESP]);
         }
         
+        if(haribote==1){
+            //画面更新
+            glutMainLoopEvent();
+        }
 
         if (instructions[code] == NULL) {
             //opecode未実装
@@ -223,6 +249,7 @@ int main(int argc, char* argv[])
         if(i<752980)quiet=1;
         if(i<789200)quiet=1;
         else quiet=backup_quiet;
+
 
         /* EIPが0になったらプログラム終了 */
         if (emu->eip == 0) {
