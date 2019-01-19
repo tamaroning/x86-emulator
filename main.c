@@ -13,6 +13,8 @@
 
 char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
 
+Emulator* emu;
+
 int i;//命令の実行回数
 
 //emuのメモリに512byteコピー
@@ -140,23 +142,73 @@ void dump_eipstack(Emulator* emu){
     puts("--------");
 }
 
+
+
+int scrnx=320,scrny=200;
+static unsigned char table_rgb[16 * 3] = {
+        0x00, 0x00, 0x00,
+        0xff, 0x00, 0x00,
+        0x00, 0xff, 0x00,
+        0xff, 0xff, 0x00,
+        0x00, 0x00, 0xff,
+        0xff, 0x00, 0xff,
+        0x00, 0xff, 0xff,
+        0xff, 0xff, 0xff,
+        0xc6, 0xc6, 0xc6,
+        0x84, 0x00, 0x00,
+        0x00, 0x84, 0x00,
+        0x84, 0x84, 0x00,
+        0x00, 0x00, 0x84,
+        0x84, 0x00, 0x84,
+        0x00, 0x84, 0x84,
+        0x84, 0x84, 0x84
+    };
+
+
+
 void display () {
-  glClear (GL_COLOR_BUFFER_BIT);
-  glBegin (GL_LINE_LOOP);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClear (GL_COLOR_BUFFER_BIT);
+    /*
+    glBegin (GL_LINE_LOOP);
+        glVertex2d (-0.9, -0.9);
+        glVertex2d (0.9, -0.9);
+        glVertex2d (0, 0.9);
+    glEnd ();*/
 
-  /*
-  glVertex2d (-0.9, -0.9);
-  glVertex2d (0.9, -0.9);
-  glVertex2d (0, 0.9);*/
+    glPointSize(1.0);
+    
+    //VRAMよみだし
+    glBegin(GL_POINTS);
+        glColor4f(0.7, 0.2, 0.2, 0.0);//いろ
+        glVertex2f(0 , -0.9);
+        glVertex2f(0.0, 0.5);
 
+        int offs=0xa0000;
+        
+        int x,y;
+        for(x=0;x<scrnx;x++){
+            for(y=0;y<scrny;y++){
+                int i=x+y*scrnx+offs;
+                int data=emu->memory[i];
+                if(data!=0)exit(0);
+                //printf("%d",data);
+                glColor3b(table_rgb[data*3],table_rgb[data*3+2],table_rgb[data*3+2]);
+                glColor4f(0.7, 0.2, 0.2, 0.0);//いろ
+                glVertex2f((float)((x-scrnx/2)/scrnx),(float)((y-scrny/2)/scrny));
+            }
+            //puts("");
+        }
 
-  glEnd ();
-  glFlush ();
+    glEnd();
+    //puts("aaa");
+
+    glFlush ();
 }
+
 
 int main(int argc, char* argv[])
 {
-    Emulator* emu;
     int stepup = 0;
     int quiet = 1, haribote = 0, memsiz = MEMORY_SIZE;
     int backup_quiet = 0;//最初の方は表示すると遅いので無条件でquietする
@@ -178,8 +230,9 @@ int main(int argc, char* argv[])
 
             //create window
             glutInit (&argc, argv);
-            //glutInitDisplayMode (GLUT_RGBA);
+            glutInitDisplayMode (GLUT_RGBA);
             glutCreateWindow ("x86 Emulator");
+            glutReshapeWindow(scrnx, scrny);
             glutDisplayFunc (display);
 
         } else {
@@ -221,7 +274,9 @@ int main(int argc, char* argv[])
         
         if(haribote==1){
             //画面更新
-            glutMainLoopEvent();
+            dump_mem(emu,0xa0000);
+            //glutDisplayFunc(display);
+            //glutMainLoopEvent();
         }
 
         if (instructions[code] == NULL) {
