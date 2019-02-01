@@ -17,9 +17,18 @@
 instruction_func_t* instructions[256];
 
 void dump(Emulator* emu){
+
     printf("\n[%02X %02X %02X %02X %02X %02X %02X %02X]\n", get_code8(emu, -8), get_code8(emu, -7), get_code8(emu, -6), get_code8(emu, -5), get_code8(emu, -4), get_code8(emu, -3), get_code8(emu, -2), get_code8(emu, -1));
     printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
     
+    char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
+
+    puts("---registers---");
+    int i;
+    for (i = 0; i < REGISTERS_COUNT; i++) {
+        printf("%s = %08x\n", registers_name[i], get_register32(emu, i));
+    }
+    printf("EIP = %08x\n", emu->eip);
 }
 
 void error(Emulator* emu){
@@ -345,22 +354,22 @@ static void cmp_rm8_imm8(Emulator* emu,ModRM* modrm){
     emu->eip++;
 }
 
-//last
+//imm8を32bitに符号拡張
 static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
-    uint32_t imm8 = (int32_t)get_sign_code8(emu, 0);
-    uint64_t result = (uint64_t)rm32 - (uint64_t)imm8;
+    int32_t imm8 = get_sign_code8(emu, 0);
+    uint64_t result = rm32 - imm8;
     update_eflags_sub(emu, rm32, imm8, result);
 
     emu->eip++;
 }
 
-//last 符号拡張してる？？？！！？ helphelp
+//last 符号拡張
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
-    int32_t imm8 = (int32_t)get_sign_code8(emu, 0);
+    int32_t imm8 = (int8_t)get_sign_code8(emu, 0);
     emu->eip += 1;
     uint64_t result = rm32 - imm8;
     set_rm32(emu, modrm, result);
@@ -610,6 +619,26 @@ static void code_0F(Emulator* emu){
 }
 
 
+static void code_F3(Emulator* emu){
+    uint8_t opecode2=get_code8(emu,1);
+    emu->eip+=2;
+    switch(opecode2){
+        case 0xa4:
+            //REP MOVS m8, m8
+            puts("REP MOVS");
+            while(get_register32(emu,ECX)!=0){
+                set_memory8(emu, get_register32(emu,EDI), (uint32_t)get_memory8(emu,get_register32(emu,ESI)) );
+                emu->registers[EDI]--;
+                emu->registers[ESI]--;
+                emu->registers[ECX]--;
+            }
+            break;
+        default:
+            puts("error opecode:F3");
+            error(emu);
+    }
+}
+
 //mov al,[dx]
 static void in_al_dx(Emulator* emu){
     if(opsiz)error(emu);
@@ -676,6 +705,7 @@ static void call_rel32(Emulator* emu){
     if(opsiz)error(emu);
     int32_t diff = get_sign_code32(emu, 1);
     push32(emu, emu->eip + 5);
+    puts("-------------call");
     
     //
     emu->eipstack[emu->stackcnt]=emu->eip + 5;
@@ -688,12 +718,17 @@ static void call_rel32(Emulator* emu){
 static void ret(Emulator* emu){
     uint32_t retaddr=pop32(emu);
 
+    puts("-------------ret");
+
     //
     uint32_t stackeip=emu->eipstack[emu->stackcnt-1];
     emu->stackcnt--;
 
     if(stackeip==retaddr){
-        //puts("onnnazi eip");
+        puts("correct return address");
+    }else{
+        printf("incorrect return address\n");
+        error(emu);
     }
 
     emu->eip = retaddr;
@@ -1138,6 +1173,10 @@ static void sti(Emulator* emu){
     emu->eip++; 
 }
 
+static void nop(Emulator* emu){
+    emu->eip++;
+}
+
 void init_instructions(void){
     int i;
     memset(instructions, 0, sizeof(instructions));
@@ -1209,6 +1248,7 @@ void init_instructions(void){
     instructions[0x85] = test_rm32_r32;
     instructions[0x88] = mov_rm8_r8;
     instructions[0x89] = mov_rm32_r32;
+    instructions[0x90] = nop;
     instructions[0x8A] = mov_r8_rm8;
     instructions[0x8B] = mov_r32_rm32;
 
@@ -1244,6 +1284,8 @@ void init_instructions(void){
     instructions[0xEC] = in_al_dx;
     instructions[0xEE] = out_dx_al;
 
+
+    instructions[0xF3] = code_F3;
     instructions[0xF6] = code_F6;
     instructions[0xFA] = cli;
     instructions[0xFB] = sti;

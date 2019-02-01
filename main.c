@@ -9,7 +9,7 @@
 #include "instruction.h"
 
 //1024MB
-#define MEMORY_SIZE (1024 * 1024 )
+#define MEMORY_SIZE (1024 * 1024*1024)
 
 char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
 
@@ -189,11 +189,10 @@ void display () {
         int x,y;
         for(x=0;x<scrnx;x++){
             for(y=0;y<scrny;y++){
-                int i=x+y*scrnx+offs;
-                int data=emu->memory[i];
+                int data=emu->memory[x+y*scrnx+offs];
                 if(data!=0)exit(0);
                 //printf("%d",data);
-                glColor3b(table_rgb[data*3],table_rgb[data*3+2],table_rgb[data*3+2]);
+                glColor3b(table_rgb[data*3],table_rgb[data*3+1],table_rgb[data*3+2]);
                 glColor4f(0.7, 0.2, 0.2, 0.0);//いろ
                 glVertex2f((float)((x-scrnx/2)/scrnx),(float)((y-scrny/2)/scrny));
             }
@@ -210,8 +209,9 @@ void display () {
 int main(int argc, char* argv[])
 {
     int stepup = 0;
-    int quiet = 1, haribote = 0, memsiz = MEMORY_SIZE;
+    int quiet = 0, haribote = 0, memsiz = MEMORY_SIZE;
     int backup_quiet = 0;//最初の方は表示すると遅いので無条件でquietする
+    if(haribote)quiet=1;
 
     //-q, -h,-sオプション
     i = 1;
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
             if(!stepup){
-                printf("%d: EIP = %X, Code = %02X   ebp:%08X  esp:%08X \n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP]);
+                printf("%d: EIP = %X Code = %02X ebp:%08X esp:%08X esi:0x%x eax:0x%x ebx:0x%x ecx:0x%x edx:0x%x\n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP],get_register32(emu,ESI),get_register32(emu,EAX),get_register32(emu,EBX),get_register32(emu,ECX),get_register32(emu,EDX));
             }else{
                 printf("\n\n%d: EIP = %X, Code = %02X\n",i, emu->eip,code);
                 dump_registers(emu);
@@ -274,9 +274,10 @@ int main(int argc, char* argv[])
         
         if(haribote==1){
             //画面更新
-            dump_mem(emu,0xa0000);
+            //dump_mem(emu,0xa0000);
             //glutDisplayFunc(display);
-            //glutMainLoopEvent();
+            glutMainLoopEvent();
+            //printf("%d\n",get_register16(emu,ESI));
         }
 
         if (instructions[code] == NULL) {
@@ -299,11 +300,13 @@ int main(int argc, char* argv[])
         //if(ebxx==1)quiet=backup_quiet;
         //if(quiet==1 && ebxx<9000 && code==0x4B){printf("%d\n",ebxx);}
 
-
-        if(i<400390)quiet=1;
-        if(i<752980)quiet=1;
-        if(i<789200)quiet=1;
-        else quiet=backup_quiet;
+        if(haribote){
+            if(i<400390)quiet=1;
+            if(i<752980)quiet=1;
+            if(i<789200)quiet=1;
+            //if(ai>100 && emu->eip>=0x3b8)puts("a");
+            else quiet=backup_quiet;
+        }   
 
 
         /* EIPが0になったらプログラム終了 */
