@@ -260,7 +260,8 @@ int main(int argc, char* argv[])
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
             if(!stepup){
-                printf("%d: EIP = %X Code = %02X ebp:%08X esp:%08X esi:0x%x eax:0x%x ebx:0x%x ecx:0x%x edx:0x%x\n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP],get_register32(emu,ESI),get_register32(emu,EAX),get_register32(emu,EBX),get_register32(emu,ECX),get_register32(emu,EDX));
+                printf("%d: EIP = %X Code = %02X ebp:%08X esp:%08X esi:0x%x eax:0x%x ebx:0x%x ecx:0x%x edx:0x%x edi:%x",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP],get_register32(emu,ESI),get_register32(emu,EAX),get_register32(emu,EBX),get_register32(emu,ECX),get_register32(emu,EDX),get_register32(emu,EDI));
+                printf("[edi]->%x\n",get_memory8(emu,get_memory32(emu,EDI)));
             }else{
                 printf("\n\n%d: EIP = %X, Code = %02X\n",i, emu->eip,code);
                 dump_registers(emu);

@@ -22,7 +22,7 @@ void dump(Emulator* emu){
     printf("[%02X %02X %02X %02X %02X %02X %02X %02X]\n\n", get_code8(emu, 0), get_code8(emu, 1), get_code8(emu, 2), get_code8(emu, 3), get_code8(emu, 4), get_code8(emu, 5), get_code8(emu, 6), get_code8(emu, 7));
     
     char* registers_name[] = {"EAX", "ECX", "EDX", "EBX", "ESP", "EBP", "ESI", "EDI"};
-
+    
     puts("---registers---");
     int i;
     for (i = 0; i < REGISTERS_COUNT; i++) {
@@ -359,7 +359,8 @@ static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
     int32_t imm8 = get_sign_code8(emu, 0);
-    uint64_t result = rm32 - imm8;
+    uint64_t result = (uint64_t)rm32 - (uint64_t)imm8;
+
     update_eflags_sub(emu, rm32, imm8, result);
 
     emu->eip++;
@@ -369,11 +370,11 @@ static void cmp_rm32_imm8(Emulator* emu, ModRM* modrm){
 static void sub_rm32_imm8(Emulator* emu, ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32 = get_rm32(emu, modrm);
-    int32_t imm8 = (int8_t)get_sign_code8(emu, 0);
-    emu->eip += 1;
-    uint64_t result = rm32 - imm8;
+    int32_t imm8 = get_sign_code8(emu, 0);
+    uint64_t result = (uint64_t)rm32 - (uint64_t)imm8;
     set_rm32(emu, modrm, result);
     update_eflags_sub(emu, rm32, imm8, result);
+    emu->eip += 1;
 }
 
 static void sub_rm32_imm32(Emulator* emu, ModRM* modrm){
@@ -399,12 +400,35 @@ static void sub_rm32_r32(Emulator* emu){
     update_eflags_sub(emu, rm32, r32, result);
 }
 
+//last
+static void sub_rm8_r8(Emulator* emu){
+    if(opsiz)error(emu);
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    uint8_t rm8 = get_rm8(emu, &modrm);
+    uint8_t r8 = get_r8(emu,&modrm);
+    uint16_t result = (uint16_t)rm8 - (uint16_t)r8;
+    set_rm8(emu, &modrm, result);
+    update_eflags_sub8(emu, rm8, r8, result);
+}
 
 static void and_rm32_imm8(Emulator* emu,ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t imm8= (uint32_t)get_code8(emu,0);
-    uint32_t rm32=get_rm8(emu,modrm);
+    uint32_t rm32=get_rm32(emu,modrm);
     uint32_t res=rm32 & imm8;
+    set_rm32(emu,modrm,rm32);
+    
+    update_eflags_or_and(emu,res);
+    emu->eip++;
+}
+
+static void or_rm32_imm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t imm8= (uint32_t)get_code8(emu,0);
+    uint32_t rm32=get_rm32(emu,modrm);
+    uint32_t res=rm32 | imm8;
     set_rm32(emu,modrm,rm32);
     
     update_eflags_or_and(emu,res);
@@ -432,6 +456,9 @@ static void code_83(Emulator* emu){
     case 0:
         add_rm32_imm8(emu, &modrm);
         break;
+    case 1:
+        or_rm32_imm8(emu,&modrm);
+        break;
     case 4:
         and_rm32_imm8(emu,&modrm);
         break;
@@ -443,6 +470,7 @@ static void code_83(Emulator* emu){
         break;
     default:
         printf("not implemented: 83 /%d\n", modrm.nnn);
+        error(emu);
         exit(1);
     }
 }
@@ -495,18 +523,15 @@ static void mov_rm32_imm32(Emulator* emu){
     set_rm32(emu, &modrm, imm32);
 }
 
-//last
+
 static void je(Emulator* emu)//jump if less
 {
-    //CF==0 and ZF==0
     int diff = (is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
     emu->eip += (diff + 4);
 }
 
-//last
 static void jne(Emulator* emu)//jump if less
 {
-    //CF==0 and ZF==0
     int diff = (!is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
     emu->eip += (diff + 4);
 }
@@ -552,6 +577,15 @@ static void movsx_r32_rm8(Emulator* emu,ModRM* modrm){
     set_r32(emu,modrm,(int32_t)sign_rm8);
 }
 
+static void setne_rm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    if(is_zero(emu)){
+        set_rm8(emu,modrm,1);
+    }else{
+        set_rm8(emu,modrm,0);
+    }
+}
+
 static void code_0F(Emulator* emu){
     emu->eip++;
     uint8_t opecode2=get_code8(emu,0);
@@ -591,6 +625,12 @@ static void code_0F(Emulator* emu){
     }else if(opecode2==0x85){
         //JE JZ
         jne(emu);
+    }else if(opecode2==0x95){
+        //setne rm8
+        ModRM modrm;
+        parse_modrm(emu,&modrm);
+        setne_rm8(emu,&modrm);
+    
     }else if(opecode2==0xAF){
         ModRM modrm;
         parse_modrm(emu,&modrm);
@@ -705,7 +745,7 @@ static void call_rel32(Emulator* emu){
     if(opsiz)error(emu);
     int32_t diff = get_sign_code32(emu, 1);
     push32(emu, emu->eip + 5);
-    puts("-------------call");
+    //puts("-------------call");
     
     //
     emu->eipstack[emu->stackcnt]=emu->eip + 5;
@@ -718,16 +758,16 @@ static void call_rel32(Emulator* emu){
 static void ret(Emulator* emu){
     uint32_t retaddr=pop32(emu);
 
-    puts("-------------ret");
+    //puts("-------------ret");
 
     //
     uint32_t stackeip=emu->eipstack[emu->stackcnt-1];
     emu->stackcnt--;
 
     if(stackeip==retaddr){
-        puts("correct return address");
+        //puts("correct return address");
     }else{
-        printf("incorrect return address\n");
+        //printf("incorrect return address\n");
         error(emu);
     }
 
@@ -1114,7 +1154,7 @@ static void code_C1(Emulator* emu){
     switch(modrm.nnn){
         case 4://shl rm32 imm8
             sal_rm32_imm8(emu,&modrm);
-            //break;
+            break;
 
         //rm32を2でimm8回符号なし除算します
         case 5:
@@ -1191,6 +1231,7 @@ void init_instructions(void){
 
     instructions[0x25] = and_eax_imm32;
 
+    instructions[0x28] = sub_rm8_r8;
     instructions[0x29] = sub_rm32_r32;
     
     instructions[0x31] = xor_rm32_r32;
