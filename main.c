@@ -263,8 +263,8 @@ int main(int argc, char* argv[])
         if (!quiet) {
             if(opsiz==1)puts("--16bit mode--");
             if(!stepup){
-                printf("%d: EIP = %X Code = %02X ebp:%08X esp:%08X esi:0x%x eax:0x%x ebx:0x%x ecx:0x%x edx:0x%x edi:%x",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP],get_register32(emu,ESI),get_register32(emu,EAX),get_register32(emu,EBX),get_register32(emu,ECX),get_register32(emu,EDX),get_register32(emu,EDI));
-                printf("[edi]->%x\n",get_memory8(emu,get_memory32(emu,EDI)));
+                printf("%d: EIP = %X Code = %02X ebp:%08X esp:%08X esi:0x%x edi:%x eax:0x%x ebx:0x%x ecx:0x%x edx:0x%x\n",i, emu->eip, code,emu->registers[EBP],emu->registers[ESP],get_register32(emu,ESI),get_register32(emu,EDI),get_register32(emu,EAX),get_register32(emu,EBX),get_register32(emu,ECX),get_register32(emu,EDX));
+                //printf(" [edi]->%x\n",get_memory8(emu,get_memory32(emu,EDI)));
             }else{
                 printf("\n\n%d: EIP = %X, Code = %02X\n",i, emu->eip,code);
                 dump_registers(emu);
@@ -291,7 +291,7 @@ int main(int argc, char* argv[])
             break;
         }
 
-        //if(i==752992)dump_registers(emu),dump_bin(emu);
+        //if(i==1685056)break;
 
         //命令実行
         instructions[code](emu);
@@ -309,9 +309,11 @@ int main(int argc, char* argv[])
             if(i<752980)quiet=1;
             if(i<789200)quiet=1;
             if(i<1072250)quiet=1;
+            if(i<1652250)quiet=1;
             //if(ai>100 && emu->eip>=0x3b8)puts("a");
             else quiet=backup_quiet;
-        }   
+        }
+
 
 
         /* EIPが0になったらプログラム終了 */

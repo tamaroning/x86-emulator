@@ -55,15 +55,16 @@ void dump_mem_(Emulator* emu,uint32_t addr){
     printf("[%02X %02X %02X %02X]\n\n", emu->memory[addr],emu->memory[addr+1],emu->memory[addr+2],emu->memory[addr+3]);
 }
  void memory_show(Emulator* emu,uint32_t addr){
-    printf("memory-0x%x\n",addr);
-    addr-=20*16;
+    //printf("memory-0x%x",addr);
+    addr-=7*16;
     int i;
-    for(i=0;i<40;i++){
-        printf("\n0x%02x ",addr);
+    for(i=0;i<14;i++){
+        printf("0x%02x ",addr);
         int j;
         for(j=0;j<16;j++){
             printf("%02x ",get_memory8(emu,addr+j));
         }
+        puts("");
         addr+=16;
     }
     puts("");
@@ -432,6 +433,18 @@ static void sub_rm32_r32(Emulator* emu){
     update_eflags_sub(emu, rm32, r32, result);
 }
 
+static void sub_r32_rm32(Emulator* emu){
+    if(opsiz)error(emu);
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    uint32_t rm32 = get_rm32(emu, &modrm);
+    uint32_t r32 = get_r32(emu,&modrm);
+    uint64_t result = (uint64_t)r32 - (uint64_t)rm32;
+    set_rm32(emu, &modrm, result);
+    update_eflags_sub(emu, r32, rm32, result);
+}
+
 //last
 static void sub_rm8_r8(Emulator* emu){
     if(opsiz)error(emu);
@@ -568,6 +581,29 @@ static void test_rm32_r32(Emulator* emu){
 
 }
 
+static void test_rm32_imm32(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t rm32,imm32,res;
+    rm32=get_rm32(emu,modrm);
+    imm32=get_code32(emu,0);
+    res = rm32 & imm32;
+
+    update_eflags_or_and(emu,res);
+    emu->eip+=4;
+}
+
+static void test_eax_imm32(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t eax,imm32,res;
+    eax=get_register32(emu,EAX);
+    imm32=get_code32(emu,1);
+    res = eax & imm32;
+
+    update_eflags_or_and(emu,res);
+    emu->eip+=5;
+
+}
+
 
 static void mov_rm8_imm8(Emulator* emu){
     emu->eip += 1;
@@ -607,6 +643,18 @@ static void je(Emulator* emu)//jump if less
 static void jne(Emulator* emu)//jump if less
 {
     int diff = (!is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
+    emu->eip += (diff + 4);
+}
+
+static void jna(Emulator* emu)//jump if less
+{
+    int diff = (is_carry(emu) || is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
+    emu->eip += (diff + 4);
+}
+
+static void ja_near(Emulator* emu)//jump if less
+{
+    int diff = (is_carry(emu) && is_zero(emu)) ? get_sign_code32(emu, 0) : 0;
     emu->eip += (diff + 4);
 }
 
@@ -676,9 +724,18 @@ static void movsx_r32_rm8(Emulator* emu,ModRM* modrm){
     set_r32(emu,modrm,(int32_t)sign_rm8);
 }
 
-static void setne_rm8(Emulator* emu,ModRM* modrm){
+static void sete_rm8(Emulator* emu,ModRM* modrm){
     if(opsiz)error(emu);
     if(is_zero(emu)){
+        set_rm8(emu,modrm,1);
+    }else{
+        set_rm8(emu,modrm,0);
+    }
+}
+
+static void setne_rm8(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    if(!is_zero(emu)){
         set_rm8(emu,modrm,1);
     }else{
         set_rm8(emu,modrm,0);
@@ -724,6 +781,12 @@ static void code_0F(Emulator* emu){
     }else if(opecode2==0x85){
         //JE JZ
         jne(emu);
+    }else if(opecode2==0x86){
+        //JE JZ
+        jna(emu);
+    }else if(opecode2==0x87){
+        //JE JZ
+        ja_near(emu);
     }else if(opecode2==0x88){
         //JE JZ
         js_near(emu);
@@ -733,6 +796,11 @@ static void code_0F(Emulator* emu){
     }else if(opecode2==0x8F){
         //JLE
         jnle_near(emu);
+    }else if(opecode2==0x94){
+        //sete rm8
+        ModRM modrm;
+        parse_modrm(emu,&modrm);
+        sete_rm8(emu,&modrm);
     }else if(opecode2==0x95){
         //setne rm8
         ModRM modrm;
@@ -780,42 +848,58 @@ static void code_F3(Emulator* emu){
             //REP MOVS m8, m8
             puts("REP MOVSB");
             while(get_register32(emu,ECX)!=0){
-                set_memory8(emu, get_register32(emu,EDI), (uint32_t)get_memory8(emu,0x7c91));//get_register32(emu,ESI)) );
+                set_memory8(emu, emu->segBase[ES]+get_register32(emu,EDI), (uint32_t)emu->segBase[DS]+get_memory8(emu,get_register32(emu,ESI)) );
                 printf("a");
                 emu->registers[EDI]++;
                 emu->registers[ESI]++;
                 emu->registers[ECX]--;
             }
-            puts("");
-            //dump_mem_(emu,get_register32(emu,ESI));
+
+            puts("\n--program");
             memory_show(emu,0x7c40);
+
+            puts("\n--stack");
             memory_show(emu,emu->registers[ESP]-4);
             //dump_mem_(emu,0x7c44);
 
             break;
-        case 0xa5://rep movsd m32 m32
+        /*case 0xa5://rep movsd m32 m32
+            puts("a");
             if(opsiz)error(emu);
             puts("REP MOVSD");
             while(get_register32(emu,ECX)!=0){
                 puts("a");
-                set_memory32(emu, emu->segBase[ES]+get_register32(emu,EDI), (uint32_t)emu->segBase[DS]+get_memory32(emu,emu->segBase[DS]+get_register32(emu,ESI)) );
-                emu->registers[EDI]-=4;
-                emu->registers[ESI]-=4;
+                set_memory32(emu, emu->segBase[ES]+get_register32(emu,EDI), emu->segBase[DS]+get_memory32(emu,emu->segBase[DS]+get_register32(emu,ESI)) );
+                emu->registers[EDI]+=4;
+                emu->registers[ESI]+=4;
                 emu->registers[ECX]--;
             }
-            break;
-        /*case 0xa6://repe cmps m8 m8
+            break;*/
+        case 0xa6://repe cmps m8 m8
             //
-            puts("repe cmpsb")
+            puts("repe cmpsb");
+            puts("EDI");
+            memory_show(emu,emu->segBase[ES]+emu->registers[EDI]);
+
+            puts("ESI");
+            memory_show(emu,emu->segBase[DS]+emu->registers[ESI]);
+
             while(get_register32(emu,ECX)!=0){
                 
-                emu->registers[EDI]--;
-                emu->registers[ESI]--;
+                emu->registers[EDI]++;
+                emu->registers[ESI]++;
                 emu->registers[ECX]--;
+
+                uint8_t v1=get_memory8(emu,emu->segBase[DS]+emu->registers[ESI]);
+                uint8_t v2=get_memory8(emu,emu->segBase[ES]+emu->registers[EDI]);
+                
+                update_eflags_sub8(emu,v1,v2,(uint16_t)(v1-v2));
+
                 if(!is_zero(emu))break;
             }
 
-            break;*/
+
+            break;
         default:
             puts("error opecode:F3");
             error(emu);
@@ -857,6 +941,7 @@ static void dec_rm32(Emulator* emu, ModRM* modrm){
 
 //last
 static void push_rm32(Emulator* emu,ModRM* modrm){
+    //puts("a");
     if(opsiz)error(emu);
     uint32_t rm32=get_rm32(emu,modrm);
     push32(emu, rm32);
@@ -888,7 +973,7 @@ static void call_rel32(Emulator* emu){
     if(opsiz)error(emu);
     int32_t diff = get_sign_code32(emu, 1);
     push32(emu, emu->eip + 5);
-    printf("-------------call returnaddr:0x%x\n",emu->eip);
+    //printf("-------------call addr:0x%x\n",emu->eip);
     
     //
     emu->eipstack[emu->stackcnt]=emu->eip + 5;
@@ -901,9 +986,9 @@ static void call_rel32(Emulator* emu){
 static void ret(Emulator* emu){
     uint32_t retaddr=pop32(emu);
 
-    puts("-------------ret");
+    //printf("-------------ret addr:0x%x\n",retaddr);
 
-    dump_eipstack_(emu);
+    //dump_eipstack_(emu);
 
     //
     uint32_t stackeip=emu->eipstack[emu->stackcnt-1];
@@ -1269,6 +1354,16 @@ static void shr_rm32_imm8(Emulator* emu,ModRM* modrm){
     emu->eip++;
 }
 
+static void shr_rm32(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t rm32,res;
+    
+    rm32=get_rm32(emu,modrm);
+    
+    res=rm32>>1;
+    update_eflags_shr(emu,rm32,1,res);
+}
+
 static void sar_rm32_imm8(Emulator* emu,ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32,imm8,res;
@@ -1288,6 +1383,23 @@ static void sar_rm32_imm8(Emulator* emu,ModRM* modrm){
     emu->eip++;
 }
 
+static void sar_rm32(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t rm32,res;
+    int32_t sgn;
+    
+    rm32=get_rm32(emu,modrm);
+
+    sgn=(int32_t)rm32;
+    sgn=sgn>>1;
+    res=(uint32_t)sgn;
+
+    set_rm32(emu,modrm,res);
+
+    update_eflags_sar(emu,rm32,1,res);
+
+}
+
 static void sal_rm32_imm8(Emulator* emu,ModRM* modrm){
     if(opsiz)error(emu);
     uint32_t rm32,imm8,res;
@@ -1302,6 +1414,28 @@ static void sal_rm32_imm8(Emulator* emu,ModRM* modrm){
     set_carry(emu,sign);//格納先の最高位
 
     if(imm8==1){
+        uint8_t top2bit=(res>>30)&3;
+        if(top2bit==0 || top2bit==3)set_overflow(emu,0);
+        else  set_overflow(emu,1);
+    }
+
+    emu->eip++;
+}
+
+static void sal_rm32_cl(Emulator* emu,ModRM* modrm){
+    if(opsiz)error(emu);
+    uint32_t rm32,cl,res;
+    rm32=get_rm32(emu,modrm);
+    cl=get_register8(emu,CL);
+
+    res=rm32<<cl;
+
+    set_rm32(emu,modrm,res);
+
+    int8_t sign=(res>>(32-cl))&1;
+    set_carry(emu,sign);//格納先の最高位
+
+    if(cl==1){
         uint8_t top2bit=(res>>30)&3;
         if(top2bit==0 || top2bit==3)set_overflow(emu,0);
         else  set_overflow(emu,1);
@@ -1335,6 +1469,44 @@ static void code_C1(Emulator* emu){
     }
 
 }
+
+
+static void code_D1(Emulator* emu){
+    //uint64_t rm8,imm8,res8;
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    switch(modrm.nnn){
+        case 5://shr rm32
+            shr_rm32(emu,&modrm);
+            break;
+        case 7://sar rm32
+            sar_rm32(emu,&modrm);
+            break;
+        default:
+            printf("error code:D1/%d\n",modrm.nnn);
+            error(emu);
+            exit(1);
+            break;
+    }
+}
+
+static void code_D3(Emulator* emu){
+    emu->eip++;
+    ModRM modrm;
+    parse_modrm(emu,&modrm);
+    switch(modrm.nnn){
+        case 4://sal rm32 cl
+            sal_rm32_cl(emu,&modrm);
+            break;
+        default:
+            printf("error code:D1/%d\n",modrm.nnn);
+            error(emu);
+            exit(1);
+            break;
+    }
+}
+
 
 //last
 static void not_rm8(Emulator* emu,ModRM* modrm){
@@ -1377,11 +1549,14 @@ static void code_F7(Emulator* emu){
     ModRM modrm;
     parse_modrm(emu,&modrm);
     switch(modrm.nnn){
+        case 0://test rm32 imm32
+            test_rm32_imm32(emu,&modrm);
+            break;
         case 7://idiv rm32
             idiv_rm32(emu,&modrm);
             break;
         default:
-            printf("error code:F6/%d\n",modrm.nnn);
+            printf("error code:F7/%d\n",modrm.nnn);
             error(emu);
             exit(1);
             break;
@@ -1443,6 +1618,8 @@ void init_instructions(void){
 
     instructions[0x28] = sub_rm8_r8;
     instructions[0x29] = sub_rm32_r32;
+
+    instructions[0x2B] = sub_r32_rm32;
     
     instructions[0x31] = xor_rm32_r32;
 
@@ -1450,7 +1627,8 @@ void init_instructions(void){
     instructions[0x3A] = cmp_r8_rm8;
     instructions[0x3B] = cmp_r32_rm32;
     instructions[0x3C] = cmp_al_imm8;
-    //instructions[0x3D] = cmp_eax_imm32;
+    
+    instructions[0x3D] = cmp_eax_imm32;
     //instructions[0x3D] = cmp_rm32_r32;
 
     
@@ -1513,6 +1691,7 @@ void init_instructions(void){
     instructions[0xA0] = mov_al_moffs8;
     instructions[0xA1] = mov_eax_moffs32;
     instructions[0xA3] = mov_moffs32_eax;
+    instructions[0xA9] = test_eax_imm32;
 
     //0xb0~0xb7
     for (i = 0; i < 8; i++) {
@@ -1529,7 +1708,11 @@ void init_instructions(void){
     instructions[0xC7] = mov_rm32_imm32;
     instructions[0xC9] = leave;
 
+
     //instructions[0xCD] = swi;
+
+    instructions[0xD1] = code_D1;
+    instructions[0xD3] = code_D3;
 
     instructions[0xE8] = call_rel32;
     instructions[0xE9] = near_jump;
