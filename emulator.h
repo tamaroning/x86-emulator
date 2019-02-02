@@ -10,6 +10,10 @@ enum Register { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI, REGISTERS_COUNT,
                 SP = ESP, BP = EBP, SI = ESI, DI = EDI
                 };
 
+enum Seg {
+            CS, DS, SS, ES, FG, GS, TR, LDTR
+            };
+
 typedef struct {
     uint32_t registers[REGISTERS_COUNT];//汎用レジスタ
 
@@ -27,6 +31,5 @@ typedef struct {
 
 int opsiz;
 
-//int locksig;
 
 #endif

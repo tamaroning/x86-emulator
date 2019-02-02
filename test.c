@@ -1,11 +1,13 @@
-#include<stdio.h>
+#include<string.h>
 
-int main (int argc, char *argv[]) {
+void func(){
+    char s[1];
+    strcpy(s,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+}
 
-  char s[10];
+int main(){
 
-  scanf("%s",s);
-
-  printf("%s\n",s);
-
+    func();
+    
+    return 0;
 }

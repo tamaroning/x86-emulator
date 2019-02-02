@@ -61,10 +61,13 @@ static Emulator* create_emu(size_t size, uint32_t eip, uint32_t esp)
     /* 汎用レジスタを全て0にする */
     memset(emu->registers, 0, sizeof(emu->registers));
 
+    //memset(emu->segBase, 0, sizeof(emu->segBase));
+
     emu->eip = eip;//eip初期値
 
     /* スタックポインタの初期値 */
     emu->registers[ESP] = esp;
+    emu->registers[EBP] = esp;
 
     memset(emu->segBase, 0, sizeof(emu->segBase));
     memset(emu->seg, 0, sizeof(emu->seg));
@@ -249,7 +252,7 @@ int main(int argc, char* argv[])
     init_instructions();
 
     ///eip=esp=0x7c00 memory1MBのemu作成
-   	emu = create_emu(memsiz, 0x7c00, 0x7c00);
+   	emu = create_emu(memsiz, 0x7c00, 0x9000);
 
     read_binary(emu, argv[1], haribote);
     i=0;
@@ -275,7 +278,7 @@ int main(int argc, char* argv[])
         
         if(haribote==1){
             //画面更新
-            //dump_mem(emu,0xa0000);
+            //if(!quiet)dump_mem(emu,0xa0000);
             //glutDisplayFunc(display);
             glutMainLoopEvent();
             //printf("%d\n",get_register16(emu,ESI));
@@ -305,6 +308,7 @@ int main(int argc, char* argv[])
             if(i<400390)quiet=1;
             if(i<752980)quiet=1;
             if(i<789200)quiet=1;
+            if(i<1072250)quiet=1;
             //if(ai>100 && emu->eip>=0x3b8)puts("a");
             else quiet=backup_quiet;
         }   
