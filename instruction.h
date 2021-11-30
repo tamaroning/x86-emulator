@@ -8,7 +8,7 @@ void init_instructions(void);
 
 typedef void instruction_func_t(Emulator*);
 
-//index=opecode
+// index=opecode
 extern instruction_func_t* instructions[256];
 
 #endif

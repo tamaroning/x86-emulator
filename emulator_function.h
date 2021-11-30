@@ -2,15 +2,16 @@
 #define EMULATOR_FUNCTION_H_
 
 #include <stdint.h>
+
 #include "emulator.h"
 
-//eflagsのビットフラグ
+// eflagsのビットフラグ
 #define CARRY_FLAG (1)
 #define ZERO_FLAG (1 << 6)
 #define SIGN_FLAG (1 << 7)
 #define OVERFLOW_FLAG (1 << 11)
 
-#define PARITY_FLAG (1<<2)
+#define PARITY_FLAG (1 << 2)
 #define INTERRUPT_FLAG (1 << 9)
 
 /* プログラムカウンタから相対位置にある符号無し8bit値を取得 */
@@ -52,7 +53,6 @@ void set_memory8(Emulator* emu, uint32_t address, uint32_t value);
 
 void set_memory16(Emulator* emu, uint32_t address, uint32_t value);
 
-
 /* メモリのindex番地に32bit値を設定する */
 void set_memory32(Emulator* emu, uint32_t address, uint32_t value);
 
@@ -77,23 +77,25 @@ int32_t is_overflow(Emulator* emu);
 int32_t is_interrupt(Emulator* emu);
 
 void update_eflags_sub8(Emulator* emu, uint8_t v1, uint8_t v2, uint16_t result);
-void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
+void update_eflags_sub(Emulator* emu, uint32_t v1, uint32_t v2,
+                       uint64_t result);
 
-void update_eflags_add8(Emulator* emu,uint8_t v1,uint8_t v2,uint16_t result);
-//void update_eflags_add16(Emulator* emu,uint16_t v1,uint16_t v2,uint32_t result);
-void update_eflags_add(Emulator* emu, uint32_t v1, uint32_t v2, uint64_t result);
+void update_eflags_add8(Emulator* emu, uint8_t v1, uint8_t v2, uint16_t result);
+// void update_eflags_add16(Emulator* emu,uint16_t v1,uint16_t v2,uint32_t
+// result);
+void update_eflags_add(Emulator* emu, uint32_t v1, uint32_t v2,
+                       uint64_t result);
 
-void update_eflags_inc(Emulator* emu,uint32_t v1);
-void update_eflags_dec(Emulator* emu,uint32_t v1);
+void update_eflags_inc(Emulator* emu, uint32_t v1);
+void update_eflags_dec(Emulator* emu, uint32_t v1);
 
-void update_eflags_or_and(Emulator* emu,uint32_t result);
-void update_eflags_or_and8(Emulator* emu,uint8_t result);
+void update_eflags_or_and(Emulator* emu, uint32_t result);
+void update_eflags_or_and8(Emulator* emu, uint8_t result);
 
-void update_eflags_sar8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
-void update_eflags_shr8(Emulator* emu,uint8_t v1,uint8_t v2,uint8_t result);
-void update_eflags_sar(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result);
-void update_eflags_shr(Emulator* emu,uint32_t v1,uint8_t v2,uint32_t result);
-void update_eflags_imul_2or3(Emulator* emu,uint32_t v1,int32_t v2);
-
+void update_eflags_sar8(Emulator* emu, uint8_t v1, uint8_t v2, uint8_t result);
+void update_eflags_shr8(Emulator* emu, uint8_t v1, uint8_t v2, uint8_t result);
+void update_eflags_sar(Emulator* emu, uint32_t v1, uint8_t v2, uint32_t result);
+void update_eflags_shr(Emulator* emu, uint32_t v1, uint8_t v2, uint32_t result);
+void update_eflags_imul_2or3(Emulator* emu, uint32_t v1, int32_t v2);
 
 #endif

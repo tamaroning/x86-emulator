@@ -6,42 +6,40 @@
 #include "emulator.h"
 
 typedef struct {
+  uint8_t base, reg_index, scale;
+  // addr:3bit reg_index:3bit scale:2bit
 
-    uint8_t base, reg_index, scale;
-    //addr:3bit reg_index:3bit scale:2bit
-
-}SIB;
+} SIB;
 
 typedef struct {
-    uint8_t mod;
+  uint8_t mod;
 
-    union {
-        uint8_t nnn;//どっちも
-        uint8_t reg_index;//同じ
-    };
+  union {
+    uint8_t nnn;        //どっちも
+    uint8_t reg_index;  //同じ
+  };
 
-    uint8_t rm;
+  uint8_t rm;
 
-    /* SIB が必要な mod/rm の組み合わせの時に使う */
-    uint8_t sib_byte;
-    SIB sib;
+  /* SIB が必要な mod/rm の組み合わせの時に使う */
+  uint8_t sib_byte;
+  SIB sib;
 
-    union {
-        int8_t disp8; //signed
-        int32_t disp32;
-    };
+  union {
+    int8_t disp8;  // signed
+    int32_t disp32;
+  };
 } ModRM;
-
 
 //呼び出し時eipがsibをさすように
 //終了時eip++
 void parse_sib(Emulator* emu, ModRM* modrm);
 
-
 /* ModR/M, SIB, ディスプレースメントを解析する
  * emu から ModR/M, SIB, ディスプレースメントを読み取って modrm にセットする。
  * 呼び出しのとき emu->eip は ModR/M バイトを指している必要がある。
- * この関数は emu->eip を即値（即値がない場合は次の命令）の先頭を指すように変更する。
+ * この関数は emu->eip
+ * を即値（即値がない場合は次の命令）の先頭を指すように変更する。
  *
  * 引数
  *   emu: eip が ModR/M バイトの先頭を指しているエミュレータ構造体
@@ -56,8 +54,6 @@ void parse_modrm(Emulator* emu, ModRM* modrm);
 uint32_t calc_memory_address(Emulator* emu, ModRM* modrm);
 
 uint32_t sib_calc_mem_addr(Emulator* emu, SIB* sib);
-
-
 
 /* rm32のレジスタまたはメモリの32bit値を取得する */
 uint32_t get_rm32(Emulator* emu, ModRM* modrm);
@@ -85,7 +81,7 @@ void set_rm8(Emulator* emu, ModRM* modrm, uint8_t value);
 uint8_t get_r8(Emulator* emu, ModRM* modrm);
 void set_r8(Emulator* emu, ModRM* modrm, uint8_t value);
 
-//16bit ver
+// 16bit ver
 uint16_t get_rm16(Emulator* emu, ModRM* modrm);
 void set_rm16(Emulator* emu, ModRM* modrm, uint16_t value);
 uint16_t get_r16(Emulator* emu, ModRM* modrm);
